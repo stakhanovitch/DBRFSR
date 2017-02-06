@@ -2,7 +2,7 @@
 
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
-<form action="{% url 'persomaker:creation' character.id %}" method="post">
+<form action="{% url 'persomaker:creation' 2 %}" method="post">
 {% csrf_token %}
 {% for charskill in Character.characterskill_set.all %}
     <input type="radio" name="charskill" id="charskill{{ forloop.counter }}" value="{{ charskill.id }}" />
