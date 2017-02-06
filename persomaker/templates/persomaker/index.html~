@@ -1,0 +1,9 @@
+{% if latest_character_list %}
+    <ul>
+    {% for question in latest_question_list %}
+        <li><a href="/{{ question.id }}/">{{ Character.name }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No characters are available.</p>
+{% endif %}

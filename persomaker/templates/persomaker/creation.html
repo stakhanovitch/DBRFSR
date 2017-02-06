@@ -1,0 +1,12 @@
+<h1>{{ character }}</h1>
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+<form action="{% url 'persomaker:creation' character.id %}" method="post">
+{% csrf_token %}
+{% for charskill in Character.characterskill_set.all %}
+    <input type="radio" name="charskill" id="charskill{{ forloop.counter }}" value="{{ charskill.id }}" />
+    <label for="charskill{{ forloop.counter }}">{{ charskill.charskill_text }}</label><br />
+{% endfor %}
+<input type="submit" value="Vote" />
+</form>
