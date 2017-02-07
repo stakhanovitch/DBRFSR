@@ -1,17 +1,20 @@
 from __future__ import unicode_literals
 from django.db import models
 
+
 class Character(models.Model):
-    #picture
+    # picture = models.ImageField(null=True)
     name = models.CharField(max_length=70)
-    #alias = models.CharField(max_length=70)
+    # alias = models.CharField(max_length=70)
     description = models.CharField(max_length=200)
     ethnicity = models.CharField(max_length=70)
     karma = models.IntegerField(default=0)
     nuyen = models.IntegerField(default=0)
-    #skills = models.ManyToManyField(Skill)
+    skills = models.ManyToManyField('Skill', through='CharacterSkill', related_name='characters')
+
     def __str__(self):
         return self.name
+
 
 class Skill(models.Model):
     name = models.CharField(max_length=70)
@@ -22,19 +25,43 @@ class Skill(models.Model):
     group = models.CharField(max_length=70, blank=True)
     context = models.CharField(max_length=70, blank=True)
     default = models.NullBooleanField(blank=True, null=True, default=None,)
-    attribute = models.ForeignKey('self', on_delete=models.CASCADE, null=True )
+    #attribute = models.ForeignKey('self', on_delete=models.CASCADE, null=True, default=None)
+
     def __str__(self):
         return self.name
-    
-class Characterskill(models.Model):
+
+
+class CharacterSkill(models.Model):
     #name = models.CharField(max_length=70, default = None)
-    character = models.ForeignKey(Character, on_delete=models.CASCADE, null=True)
-    skill = models.ForeignKey(Skill, on_delete=models.CASCADE, null=True)
+    character = models.ForeignKey(Character, on_delete=models.CASCADE)
+    skill = models.ForeignKey(Skill, on_delete=models.CASCADE)
     level = models.IntegerField(default=0)
     levelmax = models.IntegerField(default=0)
+
     def __str__(self):
         return "%s, %s" % (self.character, self.skill)
+
+
+    
+######################################
+#       en construction              #
+######################################
+
+class Quality(models.Model):
+    pass
+    
+class Tag (models.Model):
+    #ForeignKey(Characterskill
+    pass
+
+class Action (models.Model):
+    pass
     
 ######################################
 # remettre les objets du tutoriels   #
 ######################################
+
+class Polls(models.Model):
+    pass
+class Choice(models.Model):
+    pass

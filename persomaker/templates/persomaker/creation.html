@@ -1,12 +1,12 @@
-<h1>{{ character }}</h1>
-
+<h1>{{ character.name }}</h1>
+<h2>
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
-<form action="{% url 'persomaker:creation' 2 %}" method="post">
+<form action="{% url 'persomaker:creation' character.id  %}" method="post">
 {% csrf_token %}
-{% for charskill in Character.characterskill_set.all %}
+{% for charskill in character.characterskill_set.all %}
     <input type="radio" name="charskill" id="charskill{{ forloop.counter }}" value="{{ charskill.id }}" />
-    <label for="charskill{{ forloop.counter }}">{{ charskill.charskill_text }}</label><br />
+    <label for="charskill{{ forloop.counter }}">{{ charskill.skill }} {{ charskill.level }} / {{ charskill.levelmax }}</label><br />
 {% endfor %}
 <input type="submit" value="Vote" />
 </form>
