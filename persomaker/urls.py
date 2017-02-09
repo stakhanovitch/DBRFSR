@@ -25,5 +25,6 @@ urlpatterns = [
     url(r'^(?P<pk>[0-9]+)/creation/$', views.creation, name='creation'),
     url(r'^(?P<pk>[0-9]+)/results/$', views.ResultsView.as_view(), name='results'),
     url(r'^(?P<pk>[0-9]+)/echec/$', views.echec, name='echec'),
+    url(r'^character-creation/$', views.character_creation, name='character_creation'),
 ]
 

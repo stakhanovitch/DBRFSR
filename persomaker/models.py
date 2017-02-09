@@ -4,7 +4,7 @@ from django.db import models
 
 class Character(models.Model):
     ########### RP ###########
-    picture = models.ImageField(null=True)
+    #picture = models.ImageField(null=True)
     name = models.CharField(max_length=70)
     # alias = models.CharField(max_length=70)
     description = models.CharField(max_length=2000)
@@ -74,7 +74,6 @@ class Skill(models.Model):
     context = models.CharField(max_length=70, blank=True)
     default = models.NullBooleanField(blank=True, null=True, default=None,)
     #attribute = models.ForeignKey('self', on_delete=models.CASCADE, null=True, default=None)
-
     def __str__(self):
         return self.name
 
@@ -90,7 +89,26 @@ class CharacterSkill(models.Model):
     def __str__(self):
         return "%s, %s" % (self.character, self.skill)
 
-
+class Module (models.Model):
+    name = models.CharField(max_length=70, default = None)
+    description = models.CharField(max_length=500, blank=True)
+    page = models.IntegerField(default=0, blank=True)
+    rulebook = models.CharField(max_length=70, blank=True)
+    group = models.CharField(max_length=70, blank=True)
+    skills = models.ManyToManyField('Skill', through='ModuleSkill', related_name='skills')
+    karma_cost = models.CharField(max_length=70, blank=True)
+    def __str__(self):
+        return self.name
+    
+class ModuleSkill (models.Model):    
+    module = models.ForeignKey(Module, on_delete=models.CASCADE)
+    skill = models.ForeignKey(Skill, on_delete=models.CASCADE)
+    level = models.IntegerField(default=0)
+    levelmax = models.IntegerField(default=0)
+    #order = models.IntegerField(default=0)
+    def __str__(self):
+        return "%s, %s" % (self.module, self.skill)
+    
     
 ######################################
 #       en construction              #
@@ -104,13 +122,4 @@ class Tag (models.Model):
     pass
 
 class Action (models.Model):
-    pass
-    
-######################################
-# remettre les objets du tutoriels   #
-######################################
-
-class Polls(models.Model):
-    pass
-class Choice(models.Model):
     pass

@@ -1,11 +1,12 @@
-from django.shortcuts import render,get_object_or_404
+from django.shortcuts import render,get_object_or_404,redirect
 from django.http import HttpResponseRedirect, HttpResponse
 from django.template import loader
 from itertools import chain
-from .models import Character,Skill,CharacterSkill
+from .models import Character,Skill,CharacterSkill,Module, ModuleSkill
 from django.urls import reverse
 from django.views import generic
 from math import ceil
+from .forms import CreationForm
 
 class IndexView(generic.ListView):
     template_name = 'persomaker/index.html'
@@ -90,3 +91,38 @@ def echec(request, pk):
     return HttpResponse(response % pk
     )
 
+def character_creation(request):
+    
+    def module_assign(pk,modulepk):
+        print('metatype = human')
+        characterobject = Character.objects.get(id=pk)
+        moduleobject = Module.objects.get(id=1)
+        print('test')
+        test = moduleobject.moduleskill_set.all() 
+        print(test)
+        for tempmoduleskill in moduleobject.moduleskill_set.all():
+            print(tempmoduleskill.skill_id)
+            skillobject = get_object_or_404(Skill, pk = tempmoduleskill.skill_id )
+            tempcharacterskill = characterobject.characterskill_set.create(
+                character = characterobject,
+                skill = skillobject,
+                level = tempmoduleskill.level,
+                levelmax = tempmoduleskill.levelmax,
+                )
+
+    form = CreationForm(request.POST)
+    if form.is_valid():
+        character = form.save(commit=False)
+        character.save()
+        charpk = character.id
+        print ('character')
+        print (character)
+        module_assign(charpk,1)
+        
+
+        return redirect('persomaker:creation', pk=character.pk)
+    else:
+        form = CreationForm()
+    
+    return render(request, 'persomaker/character-creation.html', {'form': form})
+    
