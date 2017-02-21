@@ -4,69 +4,50 @@
     <link rel="stylesheet" href="{% static 'css/persomaker.css' %}">
   </head>
   <body>
-    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
     <div class='header'>
-      <h1>SHADOWRUN</h1>
+      <h1>{{character.name}}</h1>
     </div>
-    <div class='block' style='width:45%;display:inline-block'>
-      <ul>
-	<li>alias : {{ character.name }}</li>
-	<li>metatype : {{ character.metatype }}</li>
-	<li>Ethnicity : {{ character.ethnicity }}</li>
-	<li>Age : {{ character.age }}</li>
-	<li>Sex : {{ character.sex }}</li>
-	<li>Height : {{ character.height }}</li>
-	<li>Weight : {{ character.weight }}</li>
-	<li>Karma : {{ character.karma }}</li>
-	<li>Credibility : {{ character.credibility }}</li>
-	<li>Notoriety : {{ character.notoriety }}</li>
-	<li>Awareness : {{ character.awareness }}</li>
-	<li>Nuyen : {{ character.nuyen }}</li>
-      </ul>
+    <div class='personal_data' style='display:inline-block'>
+      {%for data in personnal_data%}
+      {% endfor %}
     </div>
-    <div class='block' style='width:45%;display:inline-block'>
-      <ul>
-	<li><b>Initiative</b></li>
-	<li>Physical initiative: {{ character.initiative_physical }}</li>
-	<li>AR initiative: {{ character.initiative_ar }}</li>
-	<li>VR cold sim initiative: {{ character.initiative_coldsim }}</li>
-	<li>VR hot sim initiative: {{ character.initiative_hotsim }}</li>
-	<li>Astral initiative: {{ character.initiative_astral }}</li>
-	<li><b>Limit</b></li>
-	<li>Mental limit: {{ character.limit_mental }}</li>
-	<li>Physical limit: {{ character.limit_physical }}</li>
-	<li>Social limit: {{ character.limit_social }}</li>
-	<li><b>Condition</b></li>
-	<li>Physical condition: {{ character.condition_physical }}</li>
-	<li>Stun condition: {{ character.condition_stun }}</li>
-	<li>Overflow: {{ character.condition_overflow }}</li>
-	<li><b>Living personna</b></li>
-	<li>Attack: {{ character.living_personna_attack }}</li>
-	<li>Data processing: {{ character.living_personna_dataprocessing }}</li>
-	<li>Device rating: {{ character.living_personna_devicerating }}</li>
-	<li>Firewall: {{ character.living_personna_firewall }}</li>
-	<li>Sleeze: {{ character.living_personna_sleeze }}</li>
-      </ul>
+    <div class='block'>
+      <div style = "width:24%;display:inline-block"><b>Initiative</b>
+	<div>Physical initiative: {{ character.initiative_physical }}</div>
+	<div>AR initiative: {{ character.initiative_ar }}</div>
+	<div>VR cold sim initiative: {{ character.initiative_coldsim }}</div>
+	<div>VR hot sim initiative: {{ character.initiative_hotsim }}</div>
+	<div>Astral initiative: {{ character.initiative_astral }}</div>
+      </div>
+      <div style = "width:25%;display:inline-block"><b>Limit</b>
+	<div>Mental limit: {{ character.limit_mental }}</div>
+	<div>Physical limit: {{ character.limit_physical }}</div>
+	<div>Social limit: {{ character.limit_social }}</div>
+      </div>
+      <div style = "width:25%;display:inline-block"><b>Condition</b>
+	<div>Physical condition: {{ character.condition_physical }}</div>
+	<div>Stun condition: {{ character.condition_stun }}</div>
+	<div>Overflow: {{ character.condition_overflow }}</div>
+      </div>
+      <div style = "width:24%;display:inline-block"><b>Living personna</b>
+	<div>Attack: {{ character.living_personna_attack }}</div>
+	<div>Data processing: {{ character.living_personna_dataprocessing }}</div>
+	<div>Device rating: {{ character.living_personna_devicerating }}</div>
+	<div>Firewall: {{ character.living_personna_firewall }}</div>
+	<div>Sleeze: {{ character.living_personna_sleeze }}</div>
+      </div>
     </div>
-    <div>
-      <form action="{% url 'persomaker:creation' character.id  %}" method="post">
-	{% csrf_token %}
-	Attributes  
-	{% for charskill in attribute_set %}
-	<div class="attribute" style="width:200px;">
-	  <p style="width:130px; display:inline-block">{{ charskill.skill }} <input type="text" name="charskill" id="charskill{{ forloop.counter }}" value="{{ charskill.level }}" style="width:20px"/> / {{ charskill.levelmax }}</p> <input type="submit" value="Vote" />
-	</div>
-	{% endfor %}
-	Skills
-	{% for charskill in skill_set %}
-	<div class="attribute" style="width:200px;">
-	  <p style="width:130px; display:inline-block">{{ charskill.skill }} {{ charskill.level }} / {{ charskill.levelmax }}</p>
-	  <input type="button" name="charskill" id="charskill{{ forloop.counter }}" value="-" />
-	  <input type="button" name="charskill" id="charskill{{ forloop.counter }}" value="+" />
-	</div>
-	{% endfor %}
-	<input type="submit" value="Vote" />
-      </form>
+    <h2>Attributes</h2>  
+    {% for charskill in attribute_set %}
+    <div class="attribute" style="width:130px; display:inline-block;">
+      <p>{{ charskill.skill }} {{ charskill.level }}  / {{ charskill.levelmax }}</p> 
     </div>
+    {% endfor %}
+    <h2>Skills</h2>
+    {% for charskill in skill_set %}
+    <div class="attribute" style="width:130px; display:inline-block;">
+      <p>{{ charskill.skill }} {{ charskill.level }} / {{ charskill.levelmax }}</p>
+    </div>
+    {% endfor %}
   </body>
 </html>

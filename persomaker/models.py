@@ -2,6 +2,38 @@ from __future__ import unicode_literals
 from django.db import models
 
 
+class Module (models.Model):
+    name = models.CharField(max_length=70, default = None)
+    description = models.CharField(max_length=500, blank=True)
+    page = models.IntegerField(default=0, blank=True)
+    rulebook = models.CharField(max_length=70, blank=True)
+    METATYPE = '1'
+    NATIONALITY = '2'
+    FORMATIVE_YEARS = '3'
+    TEEN_YEARS = '4'
+    FURTHER_EDUCATION = '5'
+    REAL_LIFE = '6'
+    TALENT = '7'
+    MODULE_CHOICE = ((METATYPE, 'Metatype'),
+                     (NATIONALITY, 'Nationality'),
+                     (FORMATIVE_YEARS, 'Formative years'),
+                     (TEEN_YEARS, 'Teen years'),
+                     (FURTHER_EDUCATION, 'Further education'),
+                     (REAL_LIFE, 'Real life'),
+                     (TALENT, 'Talent'),
+    )
+    module_bundle = models.CharField(
+        max_length=1,
+        choices= MODULE_CHOICE,
+        default='',
+        )
+
+    skills = models.ManyToManyField('Skill', through='ModuleSkill', related_name='skills')
+    karma_cost = models.CharField(max_length=70, blank=True)
+    def __str__(self):
+        return self.name
+
+
 class Character(models.Model):
     ########### RP ###########
     #picture = models.ImageField(null=True)
@@ -22,7 +54,7 @@ class Character(models.Model):
         choices= SEX_CHOICE,
         default=UNKNOWN,
         )
-        
+    
     ########### Stat ###########
     karma = models.IntegerField(default=0)
     nuyen = models.IntegerField(default=0)
@@ -30,9 +62,9 @@ class Character(models.Model):
     notoriety = models.IntegerField(default=0)
     awareness = models.IntegerField(default=0)
 
-    ########### Skills  ###########
+    ########### relation  ###########
     skills = models.ManyToManyField('Skill', through='CharacterSkill', related_name='characters')
-
+    modules = models.ForeignKey(Module, on_delete=models.CASCADE,null=True)
     ###########  calculated skills  ###########
     initiative_physical = models.IntegerField(default=0)
     initiative_ar = models.IntegerField(default=0)    
@@ -63,14 +95,52 @@ class Character(models.Model):
     def __str__(self):
         return self.name
 
-
 class Skill(models.Model):
     name = models.CharField(max_length=70)
     abstract = models.CharField(max_length=70, blank=True)
     description = models.CharField(max_length=500, blank=True)
     page = models.IntegerField(default=0, blank=True)
     rulebook = models.CharField(max_length=70, blank=True)
-    group = models.CharField(max_length=70, blank=True)
+    ACTING = '01'
+    ATHLETICS = '02'
+    BIOTECH = '03'
+    CLOSE_COMBAT = '04'
+    CONJURING = '05'
+    CRACKING = '06'
+    ELECTRONICS = '08'
+    ENCHANTING = '09'
+    ENGINEERING = '10'
+    FIREARMS = '11'
+    INFLUENCE = '12'
+    OUTDOORS = '13'
+    SORCERY = '14'
+    STEALTH = '15'
+    TASKING = '16'
+    ATTRIBUTE = '99'
+    SKILLSET_CHOICE = ((ACTING, 'Acting'),
+                       (ATHLETICS, 'Athletics'),
+                       (BIOTECH, 'Biotech'),
+                       (CLOSE_COMBAT, 'Close combat'),
+                       (CONJURING, 'Conjuring'),
+                       (CRACKING, 'Cracking'),
+                       (ELECTRONICS, 'Electronics'),
+                       (ENCHANTING, 'Enchanting'),
+                       (ENGINEERING, 'Engineering'),
+                       (FIREARMS, 'Firearms'),
+                       (INFLUENCE, 'Influence'),
+                       (OUTDOORS, 'Outdoors'),
+                       (SORCERY, 'Sorcery'),
+                       (STEALTH, 'Stealth'),
+                       (TASKING, 'Tasking'),
+                       (ATTRIBUTE,'Attribute'),
+    )
+    skillset_choice = models.CharField(
+        max_length=2,
+        choices = SKILLSET_CHOICE,
+        default='',
+        blank=True,
+        null=True,
+        )
     context = models.CharField(max_length=70, blank=True)
     default = models.NullBooleanField(blank=True, null=True, default=None,)
     #attribute = models.ForeignKey('self', on_delete=models.CASCADE, null=True, default=None)
@@ -88,17 +158,6 @@ class CharacterSkill(models.Model):
 
     def __str__(self):
         return "%s, %s" % (self.character, self.skill)
-
-class Module (models.Model):
-    name = models.CharField(max_length=70, default = None)
-    description = models.CharField(max_length=500, blank=True)
-    page = models.IntegerField(default=0, blank=True)
-    rulebook = models.CharField(max_length=70, blank=True)
-    group = models.CharField(max_length=70, blank=True)
-    skills = models.ManyToManyField('Skill', through='ModuleSkill', related_name='skills')
-    karma_cost = models.CharField(max_length=70, blank=True)
-    def __str__(self):
-        return self.name
     
 class ModuleSkill (models.Model):    
     module = models.ForeignKey(Module, on_delete=models.CASCADE)

@@ -6,7 +6,9 @@ from .models import Character,Skill,CharacterSkill,Module, ModuleSkill
 from django.urls import reverse
 from django.views import generic
 from math import ceil
-from .forms import CreationForm
+from .forms import CreationForm,ModuleForm,RealLifeForm,SkillSetForm, NewSkillSetForm
+from django.forms import formset_factory,modelformset_factory
+from functools import partial, wraps
 
 class IndexView(generic.ListView):
     template_name = 'persomaker/index.html'
@@ -14,115 +16,107 @@ class IndexView(generic.ListView):
 
     def get_queryset(self):
         """Return the last five published questions."""
-        return Character.objects.order_by('-name')[:5]
-
-
-class DetailView(generic.DetailView):
-    model = Character
-    template_name = 'persomaker/detail.html'
-
-
-class ResultsView(generic.DetailView):
-    model = Character
-    template_name = 'persomaker/result.html'
-
+        return Character.objects.order_by('-name')[:50]
 
 def creation(request, pk):
-    def final_calculation(character):
-        character.initiative_physical = int(character.characterskill_set.get(skill_id=Skill.objects.get(name='Intuition').id).level)+(character.characterskill_set.get(skill_id=Skill.objects.get(name='Reaction').id).level)
-        character.initiative_ar = int(character.characterskill_set.get(skill_id=Skill.objects.get(name='Intuition').id).level)+(character.characterskill_set.get(skill_id=Skill.objects.get(name='Reaction').id).level)
-        #Character.initiative_coldsim =  
-        #Character.initiative_hotsim = 
-        character.initiative_astral = int(character.characterskill_set.get(skill_id=Skill.objects.get(name='Intuition').id).level)*2
-
-        character.limit_mental = ceil((int(character.characterskill_set.get(skill_id=Skill.objects.get(name='Logic').id).level)*2+(character.characterskill_set.get(skill_id=Skill.objects.get(name='Intuition').id).level)+(character.characterskill_set.get(skill_id=Skill.objects.get(name='Willpower').id).level))/3)
-        character.limit_physical = ceil((int(character.characterskill_set.get(skill_id=Skill.objects.get(name='Strength').id).level)*2+(character.characterskill_set.get(skill_id=Skill.objects.get(name='Body').id).level)+(character.characterskill_set.get(skill_id=Skill.objects.get(name='Reaction').id).level))/3) 
-        character.limit_social =ceil((int(character.characterskill_set.get(skill_id=Skill.objects.get(name='Charisma').id).level)*2+(character.characterskill_set.get(skill_id=Skill.objects.get(name='Willpower').id).level)+(character.characterskill_set.get(skill_id=Skill.objects.get(name='Essence').id).level))/3) 
-
-        character.condition_physical = ceil(int(character.characterskill_set.get(skill_id=Skill.objects.get(name='Body').id).level)/2)+8
-        character.condition_stun = ceil(int(character.characterskill_set.get(skill_id=Skill.objects.get(name='Willpower').id).level)/2)+8
-        character.condition_overflow = int(character.characterskill_set.get(skill_id=Skill.objects.get(name='Body').id).level)
-
-        character.living_personna_attack = int(character.characterskill_set.get(skill_id=Skill.objects.get(name='Charisma').id).level) 
-        character.living_personna_dataprocessing = int(character.characterskill_set.get(skill_id=Skill.objects.get(name='Logic').id).level) 
-        character.living_personna_devicerating = int(character.characterskill_set.get(skill_id=Skill.objects.get(name='Resonance').id).level) 
-        character.living_personna_firewall = int(character.characterskill_set.get(skill_id=Skill.objects.get(name='Willpower').id).level) 
-        character.living_personna_sleeze = int(character.characterskill_set.get(skill_id=Skill.objects.get(name='Intuition').id).level)
-        character.attribute_skill_composure = int(character.characterskill_set.get(skill_id=Skill.objects.get(name='Charisma').id).level)+(character.characterskill_set.get(skill_id=Skill.objects.get(name='Willpower').id).level)
-        character.attribute_skill_judgeintention =  int(character.characterskill_set.get(skill_id=Skill.objects.get(name='Charisma').id).level)+(character.characterskill_set.get(skill_id=Skill.objects.get(name='Intuition').id).level)
-        character.attribute_skill_lifting =  int(character.characterskill_set.get(skill_id=Skill.objects.get(name='Body').id).level)+(character.characterskill_set.get(skill_id=Skill.objects.get(name='Strength').id).level)
-        character.attribute_skill_memory =  int(character.characterskill_set.get(skill_id=Skill.objects.get(name='Logic').id).level)+(character.characterskill_set.get(skill_id=Skill.objects.get(name='Willpower').id).level)
-
-        
-
     template = loader.get_template('persomaker/creation.html')
     character = get_object_or_404(Character, pk=pk)
-    #Faire un filtre qui distingue les skills des attributs
-    attribute_filter = Skill.objects.filter(group='ATTRIBUTE')
     #set de Skills/attributs
-    attribute_set = character.characterskill_set.filter(skill__in=attribute_filter)
-    skill_set = character.characterskill_set.exclude(skill__in=attribute_filter)
+    attribute_set = character.characterskill_set.filter(skill__skillset_choice='99').order_by('skill__name')
+    skill_set = character.characterskill_set.exclude(skill__skillset_choice='99').order_by('skill__name')
+    personnal_data = {'name':character.name,} 
     #calcul finaux
-    final_calculation(character)
-
-
-    try:
-        selected_choice = character.characterskill_set.get(pk=request.POST['charskill'])
-    except (KeyError, Character.DoesNotExist):
-        # Redisplay the question voting form.
-        
-        return render(request, 'persomaker/creation.html', {
+    #final_calculation(character)
+    context = {'pk':pk}
+    return render(request, 'persomaker/creation.html', {
+            'personnal_data':personnal_data,
             'character': character,
             'attribute_set':attribute_set,
             'skill_set':skill_set,
-            'error_message': "You didn't select a choice.",
         })
-    else:
-        selected_choice.level += 1
-        selected_choice.save()
-        # Always return an HttpResponseRedirect after successfully dealing
-        # with POST data. This prevents data from being posted twice if a
-        # user hits the Back button.
-        context = {'pk':pk}
-        return HttpResponseRedirect(reverse('persomaker:creation', args=(character.id,)))
-
-def echec(request, pk):
-    response = "echec %s."
-    return HttpResponse(response % pk
-    )
+   
+    
 
 def character_creation(request):
-    
-    def module_assign(pk,modulepk):
-        print('metatype = human')
-        characterobject = Character.objects.get(id=pk)
-        moduleobject = Module.objects.get(id=1)
-        print('test')
-        test = moduleobject.moduleskill_set.all() 
-        print(test)
-        for tempmoduleskill in moduleobject.moduleskill_set.all():
-            print(tempmoduleskill.skill_id)
-            skillobject = get_object_or_404(Skill, pk = tempmoduleskill.skill_id )
-            tempcharacterskill = characterobject.characterskill_set.create(
-                character = characterobject,
-                skill = skillobject,
-                level = tempmoduleskill.level,
-                levelmax = tempmoduleskill.levelmax,
-                )
-
     form = CreationForm(request.POST)
     if form.is_valid():
-        character = form.save(commit=False)
-        character.save()
-        charpk = character.id
-        print ('character')
-        print (character)
-        module_assign(charpk,1)
-        
-
-        return redirect('persomaker:creation', pk=character.pk)
+        character = form.save()
+        return redirect('persomaker:character_module', character.id)
     else:
         form = CreationForm()
+    return render(request,
+                  'persomaker/character-creation.html',
+                  {'form': form}
+    )
     
-    return render(request, 'persomaker/character-creation.html', {'form': form})
+def character_module(request,pk):
+    instance = get_object_or_404(Character, pk=pk)
+    formset = formset_factory(RealLifeForm,)
+    form = ModuleForm(request.POST, instance=instance)
+    if form.is_valid():
+        
+        character = form.save()
+        return redirect('persomaker:character_skillset', instance.id)
+    else:
+        form = ModuleForm()
+        return render(request,
+                      'persomaker/character-module.html',
+                      {'form': form,'formset':formset},
+        )
+
+def character_skillset(request,pk):
+    def final_calculation(instance):
+        instance.initiative_physical = instance.characterskill_set.get(skill__name = 'Reaction').level +  instance.characterskill_set.get(skill__name ='Intuition').level
+        instance.initiative_ar = instance.characterskill_set.get(skill__name = 'Intuition').level + instance.characterskill_set.get(skill__name = 'Reaction').level
+        #Character.initiative_coldsim =  
+        #Character.initiative_hotsim = 
+        instance.initiative_astral = instance.characterskill_set.get(skill__name ='Intuition').level*2
+        instance.limit_mental = ceil((instance.characterskill_set.get(skill__name = 'Logic').level*2+instance.characterskill_set.get(skill__name = 'Intuition').level + instance.characterskill_set.get(skill__name = 'Willpower').level)/3)
+        instance.limit_physical = ceil((instance.characterskill_set.get(skill__name = 'Strength').level*2+instance.characterskill_set.get(skill__name = 'Body').level+instance.characterskill_set.get(skill__name = 'Reaction').level)/3) 
+        instance.limit_social =ceil((instance.characterskill_set.get(skill__name = 'Charisma').level*2+instance.characterskill_set.get(skill__name = 'Willpower').level+instance.characterskill_set.get(skill__name = 'Essence').level)/3) 
+
+        instance.condition_physical = ceil(instance.characterskill_set.get(skill__name = 'Body').level)/2+8
+        instance.condition_stun = ceil(instance.characterskill_set.get(skill__name = 'Willpower').level)/2+8
+        instance.condition_overflow = instance.characterskill_set.get(skill__name = 'Body').level
+
+        instance.living_personna_attack = instance.characterskill_set.get(skill__name = 'Charisma').level 
+        instance.living_personna_dataprocessing = instance.characterskill_set.get(skill__name = 'Logic').level 
+        instance.living_personna_devicerating = instance.characterskill_set.get(skill__name = 'Resonance').level 
+        instance.living_personna_firewall = instance.characterskill_set.get(skill__name = 'Willpower').level 
+        instance.living_personna_sleeze = instance.characterskill_set.get(skill__name = 'Intuition').level
+        instance.attribute_skill_composure = instance.characterskill_set.get(skill__name = 'Charisma').level+instance.characterskill_set.get(skill__name = 'Willpower').level
+        instance.attribute_skill_judgeintention =  instance.characterskill_set.get(skill__name = 'Charisma').level+instance.characterskill_set.get(skill__name = 'Intuition').level
+        instance.attribute_skill_lifting =  instance.characterskill_set.get(skill__name = 'Body').level+instance.characterskill_set.get(skill__name = 'Strength').level
+        instance.attribute_skill_memory =  instance.characterskill_set.get(skill__name = 'Logic').level+instance.characterskill_set.get(skill__name = 'Willpower').level
+ 
+        
+
+    instance = get_object_or_404(Character, pk=pk)
+    SkillSetFormSet = modelformset_factory(CharacterSkill,fields=('skill','level','levelmax','character'), form = SkillSetForm, exclude=None, extra=0)
     
+    qset = instance.characterskill_set.all()
+    currentskillformset = SkillSetFormSet(queryset = qset)
+    if request.method == 'POST':
+        #deal with posting the data
+        currentskillformset = SkillSetFormSet(request.POST)
+        if currentskillformset.is_valid():
+        #if it is not valid then the "errors" will fall through and be returned            
+            currentskillformset.save()
+            final_calculation(instance)
+            instance.save()
+        return redirect('persomaker:creation',
+                        instance.id,               
+        )
+    return render(request, 'persomaker/character-skillset.html', {
+        'currentskillformset':currentskillformset,
+    })
+
+    
+def character_newskillset(request,pk):
+    newskillformset = formset_factory(NewSkillSetForm)
+    formset = newskillformset(form_kwargs={'instance': instance})
+    instance = get_object_or_404(Character, pk=pk)
+    return render(request, 'persomaker/character-skillset.html', {
+        'newskillformset': formset,
+    })
+

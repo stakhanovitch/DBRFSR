@@ -21,10 +21,11 @@ from . import views
 app_name = 'persomaker'
 urlpatterns = [
     url(r'^$', views.IndexView.as_view(), name='index'),
-    url(r'^(?P<pk>[0-9]+)/$', views.DetailView.as_view(), name='detail'),
     url(r'^(?P<pk>[0-9]+)/creation/$', views.creation, name='creation'),
-    url(r'^(?P<pk>[0-9]+)/results/$', views.ResultsView.as_view(), name='results'),
-    url(r'^(?P<pk>[0-9]+)/echec/$', views.echec, name='echec'),
     url(r'^character-creation/$', views.character_creation, name='character_creation'),
+    url(r'^(?P<pk>[0-9]+)/character-module/$', views.character_module, name='character_module'),
+    url(r'^(?P<pk>[0-9]+)/character-skillset/$', views.character_skillset, name='character_skillset'),
+    url(r'^(?P<pk>[0-9]+)/character-newskillset/$', views.character_newskillset, name='character_newskillset'),
 ]
+
 

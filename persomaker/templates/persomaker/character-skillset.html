@@ -1,0 +1,12 @@
+{% block content %}
+    <h1>New post</h1>
+    <form method="POST" class="post-form">{% csrf_token %}
+      <h2>My current skills</h2>
+      {{currentskillformset.management_form}}
+      {% for form in currentskillformset %}
+        {{ form.as_p }}
+      {% endfor %}     
+
+        <button type="submit" class="save btn btn-default">Save</button>
+    </form>
+{% endblock %}
