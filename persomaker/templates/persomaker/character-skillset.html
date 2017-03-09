@@ -1,12 +1,28 @@
-{% block content %}
-    <h1>New post</h1>
+<html>
+  <head>
+  </head>
+  <body>
+    {% block content %}
+    <h1>Add level to your skills</h1>
+    {% if currentskillformset.errors %}
+       <p style="color: red;">
+	 Please correct the error{{ currentskillformset.errors|pluralize }} below.
+	 {% for error in currentskillformset.errors %}
+	 <div>{{error.as_text}}</div>
+	 <div>{{errormessage}}</div>
+	 {% endfor %}
+       </p>
+    {% endif %}
     <form method="POST" class="post-form">{% csrf_token %}
       <h2>My current skills</h2>
       {{currentskillformset.management_form}}
       {% for form in currentskillformset %}
-        {{ form.as_p }}
-      {% endfor %}     
 
-        <button type="submit" class="save btn btn-default">Save</button>
+          <div>{{form.id}} {{form.instance.skill}} : {{form.level}} / {{form.instance.levelmax}}</div>
+      {% endfor %}     
+      
+      <button type="submit" class="save btn btn-default">Save</button>
     </form>
+  </body>
 {% endblock %}
+<html>

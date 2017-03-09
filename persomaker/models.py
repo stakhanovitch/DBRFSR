@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 from django.db import models
-
+from model_utils import FieldTracker
 
 class Module (models.Model):
     name = models.CharField(max_length=70, default = None)
@@ -64,7 +64,7 @@ class Character(models.Model):
 
     ########### relation  ###########
     skills = models.ManyToManyField('Skill', through='CharacterSkill', related_name='characters')
-    modules = models.ForeignKey(Module, on_delete=models.CASCADE,null=True)
+    modules = models.ManyToManyField('Module',related_name='characters',)
     ###########  calculated skills  ###########
     initiative_physical = models.IntegerField(default=0)
     initiative_ar = models.IntegerField(default=0)    
@@ -144,6 +144,9 @@ class Skill(models.Model):
     context = models.CharField(max_length=70, blank=True)
     default = models.NullBooleanField(blank=True, null=True, default=None,)
     #attribute = models.ForeignKey('self', on_delete=models.CASCADE, null=True, default=None)
+    ########### relation  ###########
+    #prout = models.ManyToManyField('Character', through='CharacterSkill', related_name='skills')
+    
     def __str__(self):
         return self.name
 
@@ -155,7 +158,8 @@ class CharacterSkill(models.Model):
     level = models.IntegerField(default=0)
     levelmax = models.IntegerField(default=0)
     order = models.IntegerField(default=0)
-
+    karma_cost = models.IntegerField(default=0)
+    tracker = FieldTracker()
     def __str__(self):
         return "%s, %s" % (self.character, self.skill)
     

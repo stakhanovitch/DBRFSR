@@ -7,6 +7,15 @@
     <div class='header'>
       <h1>{{character.name}}</h1>
     </div>
+    <div><h2>Remaining currency</h2></div>
+    <div class=currency' style='display:inline-block'>
+      
+      {% for key, value in currency.items %}
+        {{ key }} : {{value}}<br/>
+      {% endfor %}
+      
+    </div>
+    <div><h2>Personnal data</h2></div>
     <div class='personal_data' style='display:inline-block'>
       {%for data in personnal_data%}
       {% endfor %}
@@ -46,7 +55,7 @@
     <h2>Skills</h2>
     {% for charskill in skill_set %}
     <div class="attribute" style="width:130px; display:inline-block;">
-      <p>{{ charskill.skill }} {{ charskill.level }} / {{ charskill.levelmax }}</p>
+      <p>{{ charskill.skill }} {{ charskill.level }}</p>
     </div>
     {% endfor %}
   </body>
