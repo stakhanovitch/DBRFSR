@@ -2,7 +2,10 @@
   <head>
   </head>
   <body>
+
     {% block content %}
+    {{character.name}}, Remaining karma : {{character.karma}}
+    <a href='/persomaker/{{character.id}}/creation/'>go to your character sheet</a>
     <h1>Add level to your skills</h1>
     {% if currentskillformset.errors %}
        <p style="color: red;">

@@ -1,3 +1,4 @@
+# -*-coding:utf-8 -*-
 from __future__ import unicode_literals
 from django.db import models
 from model_utils import FieldTracker
@@ -35,6 +36,11 @@ class Module (models.Model):
 
 
 class Character(models.Model):
+    """
+    A character is the entry point of any RPG. the Character is link to skills and modules
+    A character have RP infos : name, description, ethnicity, age, sex...
+    Character object
+    """
     ########### RP ###########
     #picture = models.ImageField(null=True)
     name = models.CharField(max_length=70)
@@ -54,7 +60,7 @@ class Character(models.Model):
         choices= SEX_CHOICE,
         default=UNKNOWN,
         )
-    
+
     ########### Stat ###########
     karma = models.IntegerField(default=0)
     nuyen = models.IntegerField(default=0)
@@ -67,12 +73,12 @@ class Character(models.Model):
     modules = models.ManyToManyField('Module',related_name='characters',)
     ###########  calculated skills  ###########
     initiative_physical = models.IntegerField(default=0)
-    initiative_ar = models.IntegerField(default=0)    
+    initiative_ar = models.IntegerField(default=0)
     initiative_coldsim = models.IntegerField(default=0)
     initiative_hotsim = models.IntegerField(default=0)
     initiative_physical = models.IntegerField(default=0)
     initiative_astral = models.IntegerField(default=0)
-    
+
     limit_mental = models.IntegerField(default=0)
     limit_physical = models.IntegerField(default=0)
     limit_social = models.IntegerField(default=0)
@@ -80,7 +86,7 @@ class Character(models.Model):
     condition_physical = models.IntegerField(default=0)
     condition_stun = models.IntegerField(default=0)
     condition_overflow = models.IntegerField(default=0)
-    
+
     living_personna_attack = models.IntegerField(default=0)
     living_personna_dataprocessing = models.IntegerField(default=0)
     living_personna_devicerating = models.IntegerField(default=0)
@@ -146,7 +152,7 @@ class Skill(models.Model):
     #attribute = models.ForeignKey('self', on_delete=models.CASCADE, null=True, default=None)
     ########### relation  ###########
     #prout = models.ManyToManyField('Character', through='CharacterSkill', related_name='skills')
-    
+
     def __str__(self):
         return self.name
 
@@ -162,8 +168,8 @@ class CharacterSkill(models.Model):
     tracker = FieldTracker()
     def __str__(self):
         return "%s, %s" % (self.character, self.skill)
-    
-class ModuleSkill (models.Model):    
+
+class ModuleSkill (models.Model):
     module = models.ForeignKey(Module, on_delete=models.CASCADE)
     skill = models.ForeignKey(Skill, on_delete=models.CASCADE)
     level = models.IntegerField(default=0)
@@ -171,15 +177,15 @@ class ModuleSkill (models.Model):
     #order = models.IntegerField(default=0)
     def __str__(self):
         return "%s, %s" % (self.module, self.skill)
-    
-    
+
+
 ######################################
 #       en construction              #
 ######################################
 
 class Quality(models.Model):
     pass
-    
+
 class Tag (models.Model):
     #ForeignKey(Characterskill
     pass

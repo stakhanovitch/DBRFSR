@@ -6,6 +6,7 @@ from itertools import chain
 from .models import Character,Skill,CharacterSkill,Module, ModuleSkill
 from django.urls import reverse
 from django.views import generic
+from math import ceil
 from .forms import CreationForm,ModuleForm,RealLifeForm,SkillSetForm, NewSkillSetForm
 from django.forms import formset_factory,modelformset_factory,inlineformset_factory
 from functools import partial, wraps
@@ -81,23 +82,27 @@ def character_skillset(request,pk):
             currentskillformset.save()
 #            final_calculation(instance)
 #            instance.save()
-            return redirect('persomaker:creation',
-                        instance.id,               
-            )
+            return render(request, 'persomaker/character-skillset.html', {
+                'currentskillformset':currentskillformset,
+                'character':instance,
+           } )
         else:
             return render(request, 'persomaker/character-skillset.html', {
                 'currentskillformset':currentskillformset,
+                'character':instance,
             })
             
         
     return render(request, 'persomaker/character-skillset.html', {
         'currentskillformset':currentskillformset,
+        'character':instance,
+
     })
 
     
 def character_newskillset(request,pk):
     instance = get_object_or_404(Character, pk = pk)
-    newskillsetformset = inlineformset_factory(Character, Character.skills.through, fields = ('skill','level',), form = NewSkillSetForm,can_delete=False,)
+    NewSkillForm
     #test = instance.characterskill_set.all().values('skill_id')
     #qset = Skill.objects.exclude(test)
     

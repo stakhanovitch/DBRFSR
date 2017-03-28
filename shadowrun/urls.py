@@ -18,5 +18,8 @@ from django.contrib import admin
 
 urlpatterns = [
     url(r'^persomaker/', include('persomaker.urls')),
+    url(r'^ticket/', include('ticket.urls')),
+    url(r'^calendar/', include('personal_calendar.urls')),
     url(r'^admin/', admin.site.urls),
+    url(r'^user/', include('usermanagement.urls')),
 ]

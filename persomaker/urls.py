@@ -27,5 +27,3 @@ urlpatterns = [
     url(r'^(?P<pk>[0-9]+)/character-skillset/$', views.character_skillset, name='character_skillset'),
     url(r'^(?P<pk>[0-9]+)/character-newskillset/$', views.character_newskillset, name='character_newskillset'),
 ]
-
-
