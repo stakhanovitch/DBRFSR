@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %} Welcome {{user.username}} {% endblock title %}
+{% block content %}
+<div>
+  <p><a class="btn btn-default pull-right" href="{% url 'usermanagement:create_circle' %}">Create new campaign</a></p>
+  <h2> Your pending campaigns</h2>
+</div>
+  {% for item in object_list %}
+  <div class="panel panel-default">
+    <div class="panel-heading clearfix">
+      <h4 class="panel-title pull-left" style="padding-top: 7.5px;">{{item.name}}</h4>
+      <div class="btn-group pull-right" role="group">
+         <div class="btn-group" role="group">
+          <button type="button"
+            class="btn btn-default dropdown-toggle"
+            data-toggle="dropdown"
+            aria-haspopup="true"
+            aria-expanded="false">
+              current players <span class="badge">{{item.players.count}}</span>
+              <span class="caret"></span>
+              <span class="sr-only">Toggle Dropdown</span>
+          </button>
+          <ul class="dropdown-menu">
+          {% for player in item.players.all %}
+            <li><a href="#">{{player}}</a></li>
+          {% endfor %}
+          <li role="separator" class="divider"></li>
+          <li><a href="{% url 'usermanagement:circle_update' item.pk %}">invite Player</a></li>
+        </ul>
+        </div>
+        <a href="{% url 'usermanagement:circle_update' pk=item.id %}" class="btn btn-default"><span class="glyphicon glyphicon-cog"></span></a>
+        <a href="{% url 'usermanagement:delete_circle' pk=item.id %}" class="btn btn-default"><span class="glyphicon glyphicon-remove"></span></a>
+    </div>
+    </div>
+  <div class="panel-body">
+    <p>
+      {{item.description}}
+    </p>
+    <div>
+  </div>
+  </div>
+</div>
+  {% endfor %}
+
+{% endblock content %}

@@ -1,0 +1,51 @@
+{% extends "form_template.html" %}
+{% load bootstrap3 %}
+{% block title %}
+  World object library
+{% endblock title %}
+{% block form %}
+    {% for category in OBJECT_CATEGORY %}
+      <h2>{{OBJECT_CATEGORY|get_item:category}}</h2>
+      {% for item in obj %}
+        {% if item.category == category%}
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Object name</th>
+              {% for stat in item.objstat_set.all %}
+                <th>{{stat.stat.name}}</th>
+              {%endfor%}
+              <th>
+                actions
+              </th>
+            </tr>
+          </thead>
+            <tr>
+              <th scope="row">{{item.name}}</th>
+              {% for objstat in item.objstat_set.all %}
+              <th>
+                {{objstat.value}}
+              </th>
+              {%endfor%}
+              <th>
+                <a href ="{% url 'persomaker:object_view' id=item.id%}">view</a>
+
+                <form action="{% url 'persomaker:object_buy' item.id instance.id%}" method = "POST">
+                  {% csrf_token %}
+                <input type="submit" value = "Buy">
+                </form>
+
+                <form action="{% url 'persomaker:object_sell' item.id instance.id%}" method = "POST">
+                  {% csrf_token %}
+                <input type="submit" value = "Sell">
+                </form>
+
+              </th>
+            </tr>
+          </table>
+        {% endif %}
+      {%endfor%}
+    {% endfor %}
+{% endblock form %}
+{% block action %}
+{% endblock action %}

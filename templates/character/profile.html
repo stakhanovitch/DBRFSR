@@ -1,0 +1,66 @@
+{% extends "form_template.html" %}
+{% load bootstrap3 %}
+{% block progress %}
+{% endblock progress %}
+{% block title %}
+  {{instance.name}}
+{% endblock title %}
+{% block profile %}
+{% for item in calculated %}
+  {% if item.skill.name == 'Physical condition'%}
+    {{item.skill.name}} {{item.level}}/{{item.levelmax}}
+  {% endif %}
+  {% if item.skill.name == 'Stun condition'%}
+    {{item.skill.name}} {{item.level}}/{{item.levelmax}}
+  {% endif %}
+  {% if item.skill.name == 'Overflow'%}
+    {{item.skill.name}} {{item.level}}/{{item.levelmax}}
+  {% endif %}
+{% endfor %}
+{% endblock profile %}
+{% block formcontent %}
+{% endblock formcontent%}
+{% block form %}
+
+  <div class ='col-md-12'> <h2>Objects</h2></div>
+
+  {% for object in objset %}
+    <div class ='col-md-12'>
+      <div class="col-md-9 col-xs-12 text-center"><h3>Use your {{object.obj.name}}</h3></div>
+       <p class="col-md-9 col-xs-12 text-center">
+         <b>
+           {% for item in object.obj.objstat_set.all %}
+            {{item.stat.name}} {{item.value}} |
+           {% endfor %}
+           {% if object.modifier_pool != '' %} dice pool : {{object.dice_pool}} {% endif %}
+           {% if object.modifier_pool != '' %} ({{object.modifier_pool}}){% endif %}
+         </b>
+       <p>
+           {% for action in object.obj.authorized_actions.all %}
+           <div class = "highlight">
+              <div class ="col-md-6 col-xs-9"><p> {{action.name}} | {{action.get_action_type_display}}</p></div>
+                <div class ="col-md-2 col-xs-2">
+                  <form action="{% url 'persomaker:action_effect' objectpk=object.id  actionpk=action.id %}" method = "POST" style="display: inline-block;">
+                    {% csrf_token %}
+                    {% buttons %}
+                      <button type="submit" class="btn btn-default btn-sm">
+                        <span class="glyphicon glyphicon-chevron-right"></span>
+                      </button>
+                    {% endbuttons %}
+                  </form>
+                </div>
+            </div>
+          {% endfor %}
+      </div>
+  {% endfor %}
+
+<div class ='col-md-12'> <h2>Skills</h2></div>
+  {% for charskill in skills %}
+    <div class ='col-md-12'>
+      {{charskill.skill.name}} {{charskill.dice_pool}}
+    </div>
+  {% endfor %}
+
+{% endblock form %}
+{% block action %}
+{% endblock action %}

@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %} Pending Invitation {% endblock title %}
+{% block content %}
+  {% for item in object_list %}
+  {{item.sender}}
+  {% endfor %}
+{% endblock content %}

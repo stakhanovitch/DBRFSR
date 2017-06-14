@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'bootstrap3',
+    'django.contrib.sites',
 
 ]
 
@@ -160,6 +161,22 @@ LOGGING = {
 
 LOGIN_REDIRECT_URL = "/user/profile/"
 LOGIN_URL = "/user/login"
+
+# django.core.mail.backends.smtp.EmailBackend setup :
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'ouroboros.sender@gmail.com'
+EMAIL_HOST_PASSWORD = '7a8z9eValentin'
+EMAIL_PORT = 587
+
+
+#django.contrib.sites setup :
+SITE_ID = 1
+
+#Stockage des images :
+MEDIA_ROOT= os.path.join(BASE_DIR, "media")
+MEDIA_URL = '/media/'
 
 try:
     from local_settings import *

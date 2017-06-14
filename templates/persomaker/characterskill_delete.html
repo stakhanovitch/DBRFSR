@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block progress %}
+{% endblock progress %}
+{% block title %}
+    Are you sure to delete {{object.skill.name}}?
+{% endblock title %}
+{% block formcontent %}
+{% endblock formcontent%}
+
+{% block content %}
+<form class="form-signin" action="" method = "POST">
+  {% csrf_token %}
+  {% buttons %}
+    <button type="submit" class="btn btn-primary">
+       Yes
+    </button>
+    <input class="btn btn-link"
+                       type="button" value="Cancel"
+                       onclick="window.history.go(-1);"/>
+
+  {% endbuttons %}
+  </form>
+
+{% endblock content %}
+{% block action %}
+{% endblock action %}

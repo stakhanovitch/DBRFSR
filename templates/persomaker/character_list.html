@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %} Welcome {{user.username}} {% endblock title %}
+{% block content %}
+
+  <div class ="">
+    {{user.player.owner}}
+    <h2> Maybe would you create a new character?</h2>
+    <a href={% url 'persomaker:create' %}>
+    <button type="button" class="btn btn-primary">
+        Let's go
+    </button>
+    </a>
+  </div>
+  <div>
+    <h2>You have currently {{object_list.count}} living characters</h2>
+  </div>
+<div class='span12 text-center'>
+  {% for item in object_list %}
+  <div class="col-sm-4 col-md-3 ">
+    <div class="thumbnail">
+        <img src=
+        {% if item.picture %}
+          "{{item.picture.url}}"
+        {% else %}
+          "/media/system/anonymous_user.png"
+        {% endif %}
+        alt="..."
+        >
+        <div class="btn-group btn-group-justified" role="group">
+          <a href="{% url 'persomaker:character_profile' item.id %}" class="btn btn-primary" role="button">profile</a>
+          <a href="#" class="btn btn-default" role="button">Button</a>
+          <a href="" class="btn btn-default"><span class="glyphicon glyphicon-cog"></span></a>
+          <a href="" class="btn btn-default"><span class="glyphicon glyphicon-remove"></span></a>
+        </div>
+        <div class="caption">
+            <div>
+              <div>
+                <h3 class="text-center">{{item.name}}</h3>
+              </div>
+              <p>test description</p>
+            </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% include "ergonomy/paginator.html" %}
+{% endblock content %}
+{% block action %}
+{% endblock action %}

@@ -1,0 +1,79 @@
+{% extends "form_template.html" %}
+{% load bootstrap3 %}
+{% block title %}
+  Jackpoint recruitment
+{% endblock title %}
+{% block form %}
+
+  <h3>Attribute</h3><br/>
+
+  {%for item in attribute_set%}
+    <p style="display:inline-block">{{item.skill}} {{item.level}}/{{item.levelmax}}</p>
+    <a href="{% url 'persomaker:skill_update' skillpk=item.pk instancepk=instance.pk %}" class="btn btn-default btn-sm">
+      <span class="glyphicon glyphicon-cog"></span>
+    </a>
+    <br/>
+  {%endfor%}
+
+  <h3>Active skills</h3><br/>
+
+  {% for category in skill_category %}
+    <h4>{{category.name}}</h4>
+    {%for item in skill_set %}
+      {% if category == item.skill.skillgroup %}
+        <p style="display:inline-block">{{item.skill}} {{item.level}}</p>
+          <a href="{% url 'persomaker:skill_update' skillpk=item.pk instancepk=instance.pk %}" class="btn btn-default btn-sm">
+            <span class="glyphicon glyphicon-cog"></span>
+          </a>
+          <a href="{% url 'persomaker:skill_delete' pk=item.id %}" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-remove"></span></a>  
+      {% endif %}
+    {% endfor %}
+  {%endfor%}
+  <h4>Non-group active skills</h4>
+    {%for item in skill_set %}
+      {% if item.skill.skillgroup is None %}
+        <p style="display:inline-block">{{item.skill}} {{item.level}}</p>
+          <a href="{% url 'persomaker:skill_update' skillpk=item.pk instancepk=instance.pk %}" class="btn btn-default btn-sm">
+            <span class="glyphicon glyphicon-cog"></span>
+          </a>
+          <a href="{% url 'persomaker:skill_delete' pk=item.id %}" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-remove"></span></a>      {% endif %}
+    {% endfor %}
+  {% buttons %}
+    <a href="{% url 'persomaker:skill_add' instance.pk 96 %}" class="btn btn-default btn-sm">
+      Add new active skill
+    </a>
+  {% endbuttons %}
+  <h3>Knowledge skills</h3>
+  {% for category in knowledge_category %}
+  <h4>{{ knowledge_category|get_item:category }}</h4>
+    {%for item in knowledge_set %}
+      {% if category == item.skill.skillset_choice %}
+        <p style="display:inline-block">{{item.skill}} {{item.level}}</p>
+          <a href="{% url 'persomaker:skill_update' skillpk=item.pk instancepk=instance.pk %}" class="btn btn-default btn-sm">
+            <span class="glyphicon glyphicon-cog"></span>
+          </a>
+          <a href="{% url 'persomaker:skill_delete' pk=item.id %}" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-remove"></span></a>
+      {% endif %}
+    {% endfor %}
+    {% buttons %}
+      <a href="{% url 'persomaker:skill_add' instance.pk category %}" class="btn btn-default btn-sm">
+        Add new {{ knowledge_category|get_item:category }}
+      </a>
+    {% endbuttons %}
+  {% endfor %}
+  <h3>Qualities and Defaults</h3>
+  {% for quality in qualities %}
+    {{quality.name}}
+  {% endfor %}
+
+  {% buttons %}
+    <a href="{% url 'persomaker:final_calculation' instance.pk %}" class="btn btn-primary btn-sm">
+      Go to your profile
+    </a>
+    {% endbuttons %}
+
+
+
+{% endblock form %}
+{% block action %}
+{% endblock action %}
