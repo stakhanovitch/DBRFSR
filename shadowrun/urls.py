@@ -17,11 +17,12 @@ from django.contrib.staticfiles.urls import static, staticfiles_urlpatterns
 from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
+from usermanagement.views import HomePageView
 
 urlpatterns = [
+    url(r'^$', HomePageView.as_view(), name='home'),
+    url('^', include('django.contrib.auth.urls')),
     url(r'^persomaker/', include('persomaker.urls')),
-    url(r'^ticket/', include('ticket.urls')),
-    url(r'^calendar/', include('personal_calendar.urls')),
     url(r'^admin/', admin.site.urls),
     url(r'^user/', include('usermanagement.urls')),
 ]

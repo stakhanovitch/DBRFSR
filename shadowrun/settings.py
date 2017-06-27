@@ -31,8 +31,6 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'ticket.apps.TicketConfig',
-    'personal_calendar.apps.PersonalCalendarConfig',
     'persomaker.apps.PersomakerConfig',
     'usermanagement.apps.UsermanagementConfig',
     'django.contrib.admin',
@@ -159,8 +157,9 @@ LOGGING = {
     }
 }
 
-LOGIN_REDIRECT_URL = "/user/profile/"
-LOGIN_URL = "/user/login"
+LOGIN_REDIRECT_URL = "usermanagement:user_profile"
+LOGIN_URL = "home"
+LOGOUT_REDIRECT_URL = "home"
 
 # django.core.mail.backends.smtp.EmailBackend setup :
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

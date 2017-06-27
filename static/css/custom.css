@@ -1,7 +1,7 @@
 .hexagon {
   display: inline-block;
   position: relative;
-  width: 20px; 
+  width: 20px;
   height: 11.55px;
   margin: 5.77px 0;
   border-left: solid 1px #333333;
@@ -32,4 +32,62 @@
   bottom: -7.0711px;
   border-bottom: solid 1.4142px #333333;
   border-left: solid 1.4142px #333333;
+}
+
+/*
+ * Callouts
+ *
+ * Not quite alerts, but custom and helpful notes for folks reading the docs.
+ * Requires a base and modifier class.
+ */
+
+/* Common styles for all types */
+.bs-callout {
+  background-color: white;
+  padding: 20px;
+  margin: 20px 0;
+  border: 1px solid #eee;
+  border-left-width: 5px;
+  border-radius: 3px;
+}
+.bs-callout h4 {
+  margin-top: 0;
+  margin-bottom: 5px;
+}
+.bs-callout p:last-child {
+  margin-bottom: 0;
+}
+.bs-callout code {
+  border-radius: 3px;
+}
+
+/* Tighten up space between multiple callouts */
+.bs-callout + .bs-callout {
+  margin-top: -5px;
+}
+
+/* Variations */
+.bs-callout-danger {
+  border-left-color: #ce4844;
+}
+.bs-callout-danger h4 {
+  color: #ce4844;
+}
+.bs-callout-warning {
+  border-left-color: #aa6708;
+}
+.bs-callout-warning h4 {
+  color: #aa6708;
+}
+.bs-callout-info {
+  border-left-color: #1b809e;
+}
+.bs-callout-info h4 {
+  color: #1b809e;
+}
+
+
+.jumbotron-text-highlight {
+  text-shadow: 0 -1px 0 rgba(0,0,0,1);
+  color: #BBB !important;
 }

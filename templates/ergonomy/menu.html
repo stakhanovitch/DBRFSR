@@ -6,10 +6,23 @@
               <ul class="dropdown-menu">
                 <li><a href="{% url 'usermanagement:user_profile' %}">My Characters</a></li>
                 <li><a href="{% url "usermanagement:circle_list" %}">My campaigns</a></li>
+                <li role="separator" class="divider"></li>
+                <li><a href="{% url "logout" %}">log-out</a></li>
+
               </ul>
             </li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="#">Default</a></li>
+            {% if character %}
+            <li>
+                <img src="{{character.image.url}}" class="img-circle" style="width:40px;height:40px;margin:5px;display:inline-block"/>
+            </li>
+            <li>
+                <a href="#">{{character}}</a>
+            </li>
+            <li>
+              <a> Remaining Karma: {{character.karma}} {%if character.nuyen %} | remaining Nuyen : {{character.nuyen}}{% endif %}</a>
+            </li>
+            {% endif %}
           </ul>
         </div>

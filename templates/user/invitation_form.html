@@ -4,6 +4,10 @@
 Send an Invitation
 {% endblock title %}
 {% block content %}
+Pending invitation :
+{% for item in invitations %}
+  {{item.email}}
+{% endfor %}
 <form class="form-signin" action="" method = "POST">
   {% csrf_token %}
   {% bootstrap_form form %}

@@ -1,10 +1,13 @@
-{% extends "base.html" %}
+{% extends "game_master_admin.html" %}
+{% load bootstrap3 %}
+
 {% block title %} Welcome {{user.username}} {% endblock title %}
-{% block content %}
+{% block admin_content %}
 <div>
   <p><a class="btn btn-default pull-right" href="{% url 'usermanagement:create_circle' %}">Create new campaign</a></p>
   <h2> Your pending campaigns</h2>
 </div>
+
   {% for item in object_list %}
   <div class="panel panel-default">
     <div class="panel-heading clearfix">
@@ -16,12 +19,12 @@
             data-toggle="dropdown"
             aria-haspopup="true"
             aria-expanded="false">
-              current players <span class="badge">{{item.players.count}}</span>
+              current players <span class="badge">{{item.circlecontacts.count}}</span>
               <span class="caret"></span>
               <span class="sr-only">Toggle Dropdown</span>
           </button>
           <ul class="dropdown-menu">
-          {% for player in item.players.all %}
+          {% for player in item.circlecontacts.all %}
             <li><a href="#">{{player}}</a></li>
           {% endfor %}
           <li role="separator" class="divider"></li>
@@ -42,4 +45,4 @@
 </div>
   {% endfor %}
 
-{% endblock content %}
+{% endblock admin_content %}

@@ -1,16 +1,17 @@
 {% extends "base.html" %}
 {% block content %}
   {% block progress %}
-    {% include "ergonomy/progress.html" %}
+    {#{% include "ergonomy/progress.html" %}#}
   {% endblock progress %}
   {% block profile %}
-  <div> form template > profile </div>
   {% endblock profile %}
   {% block sidebar %}
-    {% include "ergonomy/sidebar.html" %}
+    {#{% include "ergonomy/sidebar.html" %}#}
   {% endblock sidebar %}
-  <div class="col-md-9" role="main">
-    {% block form %}  form template > form
+  <div class="row">
+    <div class="col-md-9 col-md-offset-1" role="main">
+      {% block form %}  form template > form
+    </div>
   </div>
   {% endblock form %}
 {% endblock content %}

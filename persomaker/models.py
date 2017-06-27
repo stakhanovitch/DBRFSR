@@ -5,11 +5,17 @@ from model_utils import FieldTracker
 from django.conf import settings
 from django.template.defaultfilters import slugify
 from django.db import models
-
+from usermanagement.models import Circle
+from itertools import chain
+from django.http import HttpResponseRedirect
 
 class Module (models.Model):
+    """
+    A module is a bundle of several objects such as : Skills, option (self reference), qualities
+    """
     name = models.CharField(max_length=70, default = None)
-    description = models.CharField(max_length=500, blank=True)
+    description = models.TextField(max_length=5000, blank=True)
+    image = models.ImageField(upload_to='module', null=True, blank=True)
     page = models.IntegerField(default=0, blank=True)
     rulebook = models.CharField(max_length=70, blank=True)
     METATYPE = '0'
@@ -19,6 +25,7 @@ class Module (models.Model):
     TEEN_YEARS = '4'
     FURTHER_EDUCATION = '5'
     REAL_LIFE = '6'
+    OPTION = '7'
     MODULE_CHOICE = ((METATYPE, 'Metatype'),
                      (NATIONALITY, 'Nationality'),
                      (FORMATIVE_YEARS, 'Formative years'),
@@ -26,6 +33,8 @@ class Module (models.Model):
                      (FURTHER_EDUCATION, 'Further education'),
                      (REAL_LIFE, 'Real life'),
                      (TALENT, 'Talent'),
+                     (OPTION, 'Options'),
+
     )
     module_bundle = models.CharField(
         max_length=1,
@@ -34,11 +43,11 @@ class Module (models.Model):
         )
 
     skills = models.ManyToManyField('Skill', through='ModuleSkill', related_name='skills')
-    qualities = models.ManyToManyField('Quality')
+    qualities = models.ManyToManyField('Quality', blank=True, default=None,)
     karma_cost = models.CharField(max_length=70, blank=True)
+    options = models.ManyToManyField("self", blank=True)
     def __str__(self):
         return self.name
-
 
 class Character(models.Model):
     """
@@ -47,7 +56,7 @@ class Character(models.Model):
     Character object
     """
     ########### RP ###########
-    picture = models.ImageField(upload_to='character', null=True)
+    image = models.ImageField(upload_to='character', null=True)
     name = models.CharField(max_length=70)
     # alias = models.CharField(max_length=70)
     description = models.CharField(max_length=2000, blank=True)
@@ -56,13 +65,13 @@ class Character(models.Model):
     MALE = 'M'
     FEMALE = 'F'
     UNKNOWN = 'U'
-    SEX_CHOICE = ((MALE, 'Male'),
+    MODULE_CHOICE = ((MALE, 'Male'),
                   (FEMALE, 'Female'),
                   (UNKNOWN, 'Unknown'),
                   )
     sex = models.CharField(
         max_length=1,
-        choices= SEX_CHOICE,
+        choices= MODULE_CHOICE,
         default=UNKNOWN,
         )
 
@@ -76,8 +85,9 @@ class Character(models.Model):
     ########### relation  ###########
     inventory = models.ManyToManyField('Obj', through='CharacterObj', related_name='inventory')
     skills = models.ManyToManyField('Skill', through='CharacterSkill', related_name='characters')
-    modules = models.ManyToManyField('Module', through='CharacterModule',related_name='modules')
+    modules = models.ManyToManyField('Module', through='CharacterModule', through_fields=('character','module'),related_name='modules')
     player = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    campaign = models.ForeignKey('usermanagement.Circle', null=True, blank=True, default=None,)
 
     def __str__(self):
         return self.name
@@ -90,15 +100,60 @@ class Character(models.Model):
 class CharacterModule(models.Model):
     character = models.ForeignKey(Character)
     module = models.ForeignKey(Module)
+    charactermoduleoption = models.ForeignKey(Module, blank=True, default=None, null = True, related_name='charactermoduleoption')
     def __str__(self):
         return "%s, %s" % (self.character, self.module)
     class Meta:
         unique_together = ("character","module")
 
+    def delete(self, *args, **kwargs):
+        """
+        lower the level of all the characterskill bound to the character by the module
+        If the level = 0 -> delete the CharacterSkill
+        """
+        super(CharacterModule, self).delete(*args, **kwargs)
+        #define the pool of ModuleSkill
+        print('beginning of the process')
+        try:
+            moduleskill_set = self.module.moduleskill_set.all()
+        except Exception as e:
+            moduleskill_set = []
+        #define the pool of ModuleSkill link to the module's option
+        try:
+            option_moduleskill_set = self.charactermoduleoption.moduleskill_set.all()
+        except Exception as e:
+            option_moduleskill_set = []
+        #If the characterskill exist, we control if the characterskill have been upgraded in the skill step
+        #if the character skill minus module skill level equal to 0, we delete the characterskill
+        print('this is the chain :',moduleskill_set,"/",option_moduleskill_set)
+        for tempmoduleskill in chain(moduleskill_set,option_moduleskill_set):
+            print(tempmoduleskill)
+            character_skill = CharacterSkill.objects.filter(skill = tempmoduleskill.skill , character = self.character).first()
+            print(character_skill)
+            if character_skill:
+                #try:
+                print('character_skill.level',character_skill.level)
+                print('tempmoduleskill.level',tempmoduleskill.level)
+                print('character_skill.levelmax',character_skill.levelmax)
+                print('tempmoduleskill.levelmax',tempmoduleskill.levelmax)
+                if (character_skill.level - tempmoduleskill.level) == 0 and (character_skill.levelmax - tempmoduleskill.levelmax) == 0:
+                    character_skill.delete()
+                else:
+
+                    character_skill.level -=  tempmoduleskill.level
+                    character_skill.levelmax -=  tempmoduleskill.levelmax
+                    character_skill.save()
+                #except Exception as e:
+            #    pass
+        #when we finish the process, we delete the CharacterModule
+        print('finish')
+        success_url = self.get_success_url()
+        return HttpResponseRedirect(success_url)
+
 class Skill(models.Model):
     name = models.CharField(max_length=70)
     slug = models.SlugField(blank=True,)
-    abstract = models.CharField(max_length=70, blank=True, null = True)
+    abstract = models.CharField(max_length=5000, blank=True, null = True)
     description = models.CharField(max_length=5000, blank=True, null = True)
     page = models.IntegerField(default=0, blank=True, null = True)
     rulebook = models.CharField(max_length=70, blank=True, null = True)

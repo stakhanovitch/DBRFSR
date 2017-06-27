@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}
+  {{character.name}}'s skills 
+{% endblock title %}
+{% block content %}
+
+  {% for key, value in categories.items %}
+  {% if value.all %}
+    <h2>{{key}}</h2>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Module Name</th>
+          <th class="text-center">Cost</th>
+          <th class="text-center">action</th>
+        </tr>
+      </thead>
+      {% for item in value %}
+        <tbody>
+          <tr>
+            <th scope="row">{{item.name}}</th>
+            <td>{{item.karma_cost}}</td>
+            <td><a href='{% url 'persomaker:module_view' character.pk item.pk %}'>Go</a></td>
+          </tr>
+        </tbody>
+      {% endfor %}
+    </table>
+    {% endif %}
+    {% endfor %}
+
+{% endblock content %}
+{% block action %}
+{% endblock action %}

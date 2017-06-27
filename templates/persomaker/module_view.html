@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}
+<div class="input-group">
+  <input type="text" class="form-control" aria-label="...">
+  <div class="input-group-btn">
+    <!-- Button and dropdown menu -->
+  </div>
+</div>
+{% endblock title %}
+{% block content %}
+</div>
+</div>
+</div>
+  <div class="jumbotron" style="background-image: url({{item.image.url}}); background-size: cover;">
+    <div class="container">
+      <h1 class="jumbotron-text-highlight">{{item.name}}</h1>
+      <div class="row">
+        <span class="badge"><h4>Karma : 40</h4></span>
+        <span class="badge"><h4>{{item.get_module_bundle_display}} module</h4></span>
+      <p class="jumbotron-text-highlight">{{item.description}}</p>
+
+      {% if item.moduleskill_set.all %}
+      <div class="bs-callout bs-callout-info">
+        <h4>Included skills</h4>
+        {% for subitem in item.moduleskill_set.all %}
+          {{subitem.skill.name}} <span class="badge">{{subitem.level}}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if item.qualities.all %}
+      <div class="bs-callout bs-callout-info ">
+        <h4>Qualities</h4>
+        {% for subitem in item.qualities.all %}
+          {{subitem.name}}
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if item.options.all %}
+      <div class="col-lg-12 text-center">
+          <h2 class="jumbotron-text-highlight">Choose one option to boost your skill</h2>
+        </div>
+      {% endif %}
+      <form class="form-signin" enctype="multipart/form-data" action="" method = "POST">
+      {% csrf_token %}
+      {{form.character}}
+      {{form.module}}
+      <div class="row">
+      {% for subitem in item.options.all %}
+      <div class="col-lg-4 ">
+      <div class="thumbnail bs-callout bs-callout-info">
+        <div class="caption">
+        <h4>{{subitem.name}}</h4>
+        this option includes : <br/>
+          {% for subitem in subitem.moduleskill_set.all %}
+            {{subitem.skill.name}} {{subitem.level}},
+          {% endfor %}
+          <br/>
+        <span class ="text-center">
+          {% for radio  in form.charactermoduleoption %}
+            {% if subitem.name == radio.choice_label  %}
+              {{radio}}
+            {% endif %}
+          {% endfor %}
+        </span>
+        </div>
+      </div>
+      </div>
+      {% endfor %}
+      </div>
+      <div class="col-lg-12 text-center">
+        {% buttons %}
+          <button type="submit" class="btn-lg btn-primary">
+             Next
+          </button>
+        {% endbuttons %}
+      </div>
+      </form>
+
+    </div>
+  </div>
+<div>
+<div>
+<div>
+
+{% endblock content %}

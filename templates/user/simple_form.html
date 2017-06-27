@@ -4,7 +4,8 @@
 Send an Invitation
 {% endblock title %}
 {% block content %}
-<form class="form-signin" action="" method = "POST">
+<a href="{% url 'usermanagement:create_invitation' %}">add contacts</a>
+<form class="form-signin" enctype="multipart/form-data" action="" method = "POST">
   {% csrf_token %}
   {% bootstrap_form form %}
   {% buttons %}

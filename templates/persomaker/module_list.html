@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}
+{% endblock title %}
+{% block content %}
+<div class=" statcard-primary p-4 mb-2">
+  <button type="button" class="btn btn-lg btn-pill">
+    <h3 class="statcard-number">
+      1
+    </h3>
+    <span class="statcard-desc">Your <br/>campaign</span>
+  </button>
+  <button type="button" class="btn btn-lg btn-pill">
+    <h3 class="statcard-number">
+      2
+    </h3>
+    <span class="statcard-desc">Your character <br/>detail</span>
+  </button>
+
+  <button type="button" class="btn btn-lg btn-pill btn-primary">
+    <h3 class="statcard-number">
+      3
+    </h3>
+    <span class="statcard-desc">Your <br/> module life</span>
+  </button>
+
+  <button type="button" class="btn btn-lg btn-pill">
+    <h3 class="statcard-number">
+      4
+    </h3>
+    <span class="statcard-desc">Your <br/>traits</span>
+  </button>
+
+  <button type="button" class="btn btn-lg btn-pill">
+    <h3 class="statcard-number">
+      5
+    </h3>
+    <span class="statcard-desc">Your <br/>equipment</span>
+  </button>
+
+  <button type="button" class="btn btn-lg btn-pill">
+    <h3 class="statcard-number">
+      6
+    </h3>
+    <span class="statcard-desc">Your <br/>contact</span>
+  </button>
+</div>
+<h2>Tell me more about your life, what did you do ? </h2>
+{% for key, value in charactercategories.items %}
+{% if value.all %}
+  {{key}}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Module Name</th>
+        <th class="text-center">Option</th>
+        <th class="text-center">category</th>
+        <th class="text-center">cost</th>
+        <th class="text-center">actions</th>
+      </tr>
+    </thead>
+    {% for item in value %}
+      <tbody>
+        <tr>
+          <th scope="row"><a href='{% url 'persomaker:module_view' character.pk item.module.pk %}'>{{item.module.name}}</a></th>
+          <td>{{item.charactermoduleoption.name}}</td>
+          <td>{{item.module.get_module_bundle_display}}</td>
+          <td>{{item.module.karma_cost}}</td>
+
+          <td>
+            <a href='{% url 'persomaker:module_view' character.pk item.module.pk %}'>Modify</a>
+            <a href='{% url 'persomaker:module_delete' item.pk %}'>Delete</a>
+          </td>
+        </tr>
+      </tbody>
+    {% endfor %}
+  </table>
+{% endif %}
+{% endfor %}
+
+<hr/>
+
+{% for key, value in categories.items %}
+{% if value.all %}
+{{key}}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Module Name</th>
+        <th class="text-center">Cost</th>
+        <th class="text-center">action</th>
+      </tr>
+    </thead>
+    {% for item in value %}
+      <tbody>
+        <tr>
+          <th scope="row">{{item.name}}</th>
+          <td>{{item.karma_cost}}</td>
+          <td><a href='{% url 'persomaker:module_view' character.pk item.pk %}'>Go</a></td>
+        </tr>
+      </tbody>
+    {% endfor %}
+  </table>
+{% endif %}
+{% endfor %}
+{% endblock content %}

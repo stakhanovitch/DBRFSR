@@ -1,0 +1,28 @@
+{% load bootstrap3 %}
+{% block content%}
+{% if form.errors %}
+<p>Your username and password didn't match. Please try again.</p>
+{% endif %}
+
+{% if next %}
+    {% if user.is_authenticated %}
+    {% else %}
+    <div class = "alert alert-dismissable alert-warning">//////// Authentification required ////////</div>
+    <p>Please login to see this page.</p>
+    {% endif %}
+{% endif %}
+
+<form method="post" action="{% url 'home' %}">
+{% csrf_token %}
+{% bootstrap_form form %}
+{% buttons %}
+  <button type="submit" class="btn btn-primary">
+     login
+  </button>
+  <input type="hidden" name="next" value="{{ next }}" />
+  <p><a href="{% url 'password_reset' %}">Lost password?</a></p>
+
+{% endbuttons %}
+</form>
+
+{% endblock content%}

@@ -1,27 +1,51 @@
 # -*-coding:utf-8 -*-
 from django import forms
-from django.forms import HiddenInput
-from .models import Character, Skill, CharacterSkill,Module,ModuleSkill,CharacterModule,Quality,SkillSpecialisation
+from django.forms import HiddenInput, CheckboxSelectMultiple
+from .models import *
 from math import ceil
 from django.utils.translation import gettext as _
+from itertools import chain
 
 #//////////////////////////////////////////////////////////////////#
-class CreationForm(forms.ModelForm):
-    karma = forms.CharField(widget=forms.HiddenInput(), initial=750)
+class CharacterCreationForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        player = kwargs.pop('player', None)
+        campaign = kwargs.pop('campaign', None)
+        super(CharacterCreationForm, self).__init__(*args, **kwargs)
+        self.initial['player'] = player
+        self.fields['player'].widget = HiddenInput()
+        self.initial['campaign'] = campaign
+        self.fields['campaign'].widget = HiddenInput()
     class Meta:
         model = Character
-        fields = ('name','karma','player')
+        fields = ('name','image','karma','player','campaign')
+    karma = forms.CharField(widget=forms.HiddenInput(), initial=750)
 
 
 class ModuleForm(forms.ModelForm):
+    def __init__(self,*args,**kwargs):
+        super(ModuleForm, self).__init__(*args,**kwargs)
+        module = kwargs.pop('module', None)
+        character = kwargs.pop('character', None)
+        self.fields['character'].widget = HiddenInput()
+        self.fields['module'].widget = HiddenInput()
+        self.fields['charactermoduleoption'].widget = forms.RadioSelect(choices=self.fields['charactermoduleoption'].choices)
+
     def module_assign(self):
-        moduleobject = self.instance.module
+        #print('module_assign')
+        #print('try',self.cleaned_data['charactermoduleoption'])
         character = self.instance.character
+        if self.cleaned_data['charactermoduleoption']:
+            option_moduleskill_set = self.instance.module.options.get(name = self.cleaned_data['charactermoduleoption']).moduleskill_set.all()
+            option_quality_set = Quality.objects.filter(module = self.cleaned_data['charactermoduleoption'])
+        else:
+            option_moduleskill_set = ''
+            option_quality_set = ''
+        #print(option_moduleskill_set)
         #je crée quand même la relation
         if len(CharacterModule.objects.filter(character = character, module = self.instance.module))<=1:
-            for tempmoduleskill in moduleobject.moduleskill_set.all():
-                tempskill = Skill.objects.get(pk = tempmoduleskill.skill_id)
-                character_skill = CharacterSkill.objects.filter(skill_id = tempskill.id , character_id = character.pk)
+            for tempmoduleskill in chain(self.instance.module.moduleskill_set.all(),option_moduleskill_set):
+                character_skill = CharacterSkill.objects.filter(skill = Skill.objects.get(pk = tempmoduleskill.skill_id) , character = self.instance.character).first()
                 if  character_skill :
                     character_skill.level +=  tempmoduleskill.level
                     character_skill.levelmax +=  tempmoduleskill.levelmax
@@ -29,12 +53,11 @@ class ModuleForm(forms.ModelForm):
                 else:
                     character_skill = CharacterSkill.objects.create(
                         character = character,
-                        skill = tempskill,
+                        skill = Skill.objects.get(pk = tempmoduleskill.skill_id),
                         level = tempmoduleskill.level,
                         levelmax = tempmoduleskill.levelmax)
                     tempcharacterskill = character.characterskill_set.add(character_skill)
-        for quality in Quality.objects.filter(module = moduleobject):
-            print (quality)
+        for quality in chain(Quality.objects.filter(module = self.instance.module),option_quality_set):
             quality.character.add(character)
 
     def karma_cost(self):
@@ -42,17 +65,18 @@ class ModuleForm(forms.ModelForm):
         character = Character.objects.get(pk = self.instance.character_id)
         character.karma -= int(module.karma_cost)
         character.save()
+
     def save(self, *args, **kwargs):
         self.instance = super(ModuleForm, self).save(*args, **kwargs)
-        data = self.cleaned_data
-        for fielddata in data:
-            if fielddata == 'module':
-                self.module_assign()
-                self.karma_cost()
+        if self.cleaned_data['module']:
+            self.module_assign()
+            self.karma_cost()
+        #self.instance.save()
         return self.instance
+
     class Meta:
         model = CharacterModule
-        fields = ('module','character')
+        fields = ('module','character','charactermoduleoption')
 
 class SkillCreateForm(forms.ModelForm):
     class Meta:

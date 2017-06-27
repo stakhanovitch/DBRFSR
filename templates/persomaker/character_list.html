@@ -1,27 +1,68 @@
 {% extends "base.html" %}
 {% load bootstrap3 %}
+{% load common %}
 {% block title %} Welcome {{user.username}} {% endblock title %}
 {% block content %}
 
-  <div class ="">
-    {{user.player.owner}}
-    <h2> Maybe would you create a new character?</h2>
-    <a href={% url 'persomaker:create' %}>
-    <button type="button" class="btn btn-primary">
-        Let's go
-    </button>
-    </a>
+{%for item in campaign %}
+  <div class="jumbotron" style="background-image: url({{item.image.url}}); background-size: cover;">
+    <h1>{{item.name}}</h1>
+    {% if item.characters %}
+      {%for character in item.characters %}
+        {% if character.player == request.user %}
+          {% set campaign_character = true %}
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="media">
+              <div class="media-left">
+                <a href="#">
+                  <img src="{{character.image.url}}" class="img-circle" style="width:40px;height:40px;margin:5px;display:inline-block"/>
+                </a>
+              </div>
+              <div class="media-body">
+                <h4 class="media-heading">{{character.name}}</h4>
+                ...
+              </div>
+            </div>
+          </div>
+        </div>
+        {% else %}
+          {% set campaign_character = false %}
+        {% endif %}
+        {% endfor %}
+      {% else %}
+        <div class="alert alert-warning" role="alert">You don't have a character yet, create a character for this campaign</div>
+        {% set campaign_character = false %}
+      {% endif %}
+
+    <H1>{{ campaign_character }}</h1>
+    <p>{{item.description}}</p>
+    <p>Your Game Master : {{item.owner}}</p>
+    {% if campaign_character != false %}
+      <p><a class="btn btn-primary btn-lg" href="{% url 'persomaker:create_character' campaign_slug=item.slug %}" role="button">Let's go</a></p>
+    {% endif %}
   </div>
+{% endfor %}
+
+<div class ="row">
+  {{user.player.owner}}
+  <h2> Maybe would you create a new character?</h2>
+  <a href={% url 'persomaker:create_character' %}>
+  <button type="button" class="btn btn-primary">
+      Let's go
+  </button>
+  </a>
+</div>
   <div>
     <h2>You have currently {{object_list.count}} living characters</h2>
   </div>
-<div class='span12 text-center'>
+<div class='row'>
   {% for item in object_list %}
   <div class="col-sm-4 col-md-3 ">
     <div class="thumbnail">
         <img src=
-        {% if item.picture %}
-          "{{item.picture.url}}"
+        {% if item.image %}
+          "{{item.image.url}}"
         {% else %}
           "/media/system/anonymous_user.png"
         {% endif %}
@@ -45,7 +86,10 @@
   </div>
   {% endfor %}
 </div>
+<hr/>
+<div class="row">
 {% include "ergonomy/paginator.html" %}
+</div>
 {% endblock content %}
 {% block action %}
 {% endblock action %}
