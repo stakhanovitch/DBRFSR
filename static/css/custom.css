@@ -1,3 +1,12 @@
+hr.hr-small {
+   margin: 7px 0px;
+   border-top: 1px solid #555
+ }
+hr.hr-large {
+   margin: 24px 0px;
+ }
+
+
 .hexagon {
   display: inline-block;
   position: relative;

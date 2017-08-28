@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}
+What makes you special ?
+{% endblock title %}
+{% block content %}
+{% include "ergonomy/submenu.html" %}
+<div class="row">
+<h2> You already spend {{character.current_quality_sum}} over the {{character.max_quality}} karma points in qualities</h2>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Quality Name</th>
+      <th class="text-center">Cost</th>
+      <th class="text-center">action</th>
+    </tr>
+  </thead>
+  {% for item in object_list %}
+    {% if item.quality.quality_type == '01' %}
+      <tbody>
+      <tr>
+        <th scope="row">{{item.quality.name}}</th>
+        <td>{{item.quality.karma_cost}}</td>
+        <td>
+          <a href={% url 'persomaker:quality_view' characterpk=character.pk pk=item.quality.pk %}>View</a>
+          <a href={% url 'persomaker:quality_delete' pk=item.pk %}>Delete</a>
+        </td>
+      </tr>
+      {% endif %}
+      {% endfor %}
+    </tbody>
+</table>
+<h2> You already spend {{character.current_default_sum}} over the {{character.max_default}} karma points in default</h2>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Quality Name</th>
+      <th class="text-center">Cost</th>
+      <th class="text-center">action</th>
+    </tr>
+  </thead>
+  {% for item in object_list %}
+    {% if item.quality.quality_type == '02' %}
+    <tbody>
+      <tr>
+        <th scope="row">{{item.name}}</th>
+        <td>{{item.karma_cost}}</td>
+        <td><a href=''>View</a></td>
+      </tr>
+      {% endif %}
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock content %}

@@ -1,52 +1,22 @@
-{% extends "form_template.html" %}
+{% extends "base.html" %}
 {% load bootstrap3 %}
 {% block title %}
-  Jackpoint recruitment
+  So, Chummer, what's your name?
 {% endblock title %}
-{% block formcontent %}
-{% endblock formcontent%}
-{% block form %}
-<div>
-  <p>
-What you have to understand,
-though, is that not everyone’s got it. So we’re
-going to throw a quick screening interview at you, just
-to make sure you’re ready to hit the shadows. Answer
-fast—no one’s got time to sit around these days.<br/>
-Do you have imagination? And your own weapon?
-If you’re in a dark alley and the earth buckles under
-your feet, and some being materializes from the ground
-and prepares to attack, are you ready to make that
-thing—whatever it is—hurt?<br/>
-If the situation suddenly changes in the middle of a
-mission, and you’re swarmed by security guards who
-weren’t supposed to be there, and you’ve got bullets,
-drones, and magic lightning streaming down on you,
-can you keep your shit together?<br/>
-Will you trade your flesh and blood for steel and
-chrome?<br/>
-Will you risk blowing out your mind to seize a piece
-of the magic power flowing through everything?
-Will you put your whole self into the Matrix so you
-can be faster than the next guy, even if it means you
-might have your brain seared by biofeedback?<br/>
-Will you pay what it costs to be the best?<br/>
-<div class=' bs-callout bs-callout-info'>
+{% block content %}
+  {% include "ergonomy/submenu.html" %}
   <h2>Character creation condition</h2>
     <b>Creation type:</b> Run faster<br/>
     <b>Credit:</b> 750 karma points</br>
-</div>
-<h2>So, Chummer, if you're that ready, what's your name?</h2>
-</div>
-<form class="form-signin" enctype="multipart/form-data" action="" method = "POST">
-  {% csrf_token %}
-  {% bootstrap_form form %}
-  {% buttons %}
-    <button type="submit" class="btn btn-primary">
-       Next
-    </button>
-  {% endbuttons %}
-  </form>
-{% endblock form %}
+    <form class="form-signin" enctype="multipart/form-data" action="" method = "POST">
+    {% csrf_token %}
+    {% bootstrap_form form %}
+    {% buttons %}
+      <button type="submit" class="btn btn-primary">
+         Next
+      </button>
+    {% endbuttons %}
+    </form>
+  {% endblock content %}
 {% block action %}
 {% endblock action %}

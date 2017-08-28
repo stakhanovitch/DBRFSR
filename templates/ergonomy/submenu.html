@@ -1,0 +1,106 @@
+{%load common %}
+<ul class="nav nav-tabs">
+
+  {%if character %}
+    {% url "persomaker:campaign_view" character.pk character.campaign.slug as item_url %}
+  {% else %}
+    {% url "persomaker:campaign_view" campaign.slug as item_url %}
+  {% endif %}
+  {%url_active "campaign_view" as test_url %}
+  {% if test_url == 'active' %}
+    <li role="presentation" class="active">
+    <a href = "" class="btn btn-lg btn-pill btn-primary">
+  {% else %}
+    <li role="presentation">
+    <a href = "{{item_url}}" class="btn btn-lg btn-pill">
+  {% endif %}
+
+  Campaign details
+  </a>
+</li>
+
+
+{%if character %}
+  {% url "persomaker:update_character" characterpk=character.pk campaign_slug=character.campaign.slug as item_url %}
+  {%url_active "update_character" as test_url %}
+{% else %}
+  {% url "persomaker:create_character" campaign.slug as item_url %}
+  {%url_active "create_character" as test_url %}
+{% endif %}
+{% if test_url == 'active' %}
+  <li role="presentation" class="active">
+  <a href = "" class="btn btn-lg btn-pill btn-primary">
+{% else %}
+  <li role="presentation">
+  <a href = "{{item_url}}" class="btn btn-lg btn-pill">
+{% endif %}
+  Character creation
+</a>
+</li>
+
+
+{%if character %}
+  {% url "persomaker:module_list" characterpk=character.pk as item_url %}
+{% else %}
+  {% set item_url = "" %}
+{% endif %}
+{% url_active "module_list" as test_url %}
+{% if test_url == 'active' %}
+  <li role="presentation" class="active">
+  <a href = "" class="btn btn-lg btn-pill btn-primary">
+{% else %}
+  <li role="presentation">
+  <a href = "{{item_url}}" class="btn btn-lg btn-pill">
+{% endif %}
+  Your background
+</a>
+</li>
+
+
+
+{%if character %}
+  {% url "persomaker:charactertrait_list" characterpk=character.pk as item_url %}
+{% else %}
+  {% set item_url = "" %}
+{% endif %}
+{% url_active "charactertrait_list" as test_url %}
+{% url_active "trait_list" as test_url2 %}
+{% if test_url == 'active' or test_url2 == 'active' %}
+  {% set step = "quality" %}
+  <li role="presentation" class="active">
+  <a href = "" class="btn btn-lg btn-pill btn-primary">
+{% else %}
+  <li role="presentation">
+  <a href = "{{item_url}}" class="btn btn-lg btn-pill">
+{% endif %}
+Your Traits
+</a>
+</li>
+<li role="presentation">
+  <a href = "" class="btn btn-lg btn-pill">
+    Your skills
+  </a>
+</li>
+
+<li role="presentation">
+  <a href = "" class="btn btn-lg btn-pill">
+    Your equipment
+  </a>
+</li>
+<li role="presentation">
+  <a href = "" class="btn btn-lg btn-pill">
+    Your contacts
+  </a>
+</li>
+</ul>
+
+{% if step  == "quality" %}
+<div class="row">
+  <ul class="nav nav-pills nav-justified">
+    <li><a href ={% url "persomaker:trait_list" characterpk=character.pk category_slug='quality'%}>Qualities</a></li>
+    <li><a href ={% url "persomaker:trait_list" characterpk=character.pk category_slug='default'%}>Defaults</a></li>
+    <li><a href ={% url "persomaker:charactertrait_list" characterpk=character.pk %}>Traits recap</a></li>
+  </ul>
+</div>
+<hr/>
+{% endif %}

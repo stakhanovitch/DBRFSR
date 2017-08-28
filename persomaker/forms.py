@@ -1,4 +1,5 @@
 # -*-coding:utf-8 -*-
+from django.core.exceptions import ValidationError
 from django import forms
 from django.forms import HiddenInput, CheckboxSelectMultiple
 from .models import *
@@ -8,6 +9,7 @@ from itertools import chain
 
 #//////////////////////////////////////////////////////////////////#
 class CharacterCreationForm(forms.ModelForm):
+    karma = forms.CharField(widget=forms.HiddenInput(), initial=750)
     def __init__(self, *args, **kwargs):
         player = kwargs.pop('player', None)
         campaign = kwargs.pop('campaign', None)
@@ -19,7 +21,6 @@ class CharacterCreationForm(forms.ModelForm):
     class Meta:
         model = Character
         fields = ('name','image','karma','player','campaign')
-    karma = forms.CharField(widget=forms.HiddenInput(), initial=750)
 
 
 class ModuleForm(forms.ModelForm):
@@ -78,6 +79,35 @@ class ModuleForm(forms.ModelForm):
         model = CharacterModule
         fields = ('module','character','charactermoduleoption')
 
+
+
+class CharacterTraitForm(forms.ModelForm):
+    def __init__(self,*args,**kwargs):
+        super(CharacterTraitForm, self).__init__(*args,**kwargs)
+        character = kwargs.pop('character', None)
+        trait = kwargs.pop('trait', None)
+        self.fields['character'].widget = HiddenInput()
+        self.fields['trait'].widget = HiddenInput()
+
+    def clean(self):
+        cleaned_data = super(CharacterTraitForm, self).clean()
+        if cleaned_data['trait'].karma_cost + cleaned_data['character'].current_quality_sum() >= cleaned_data['character'].max_quality:
+            raise ValidationError(
+                "You can't add %(trait)s to your character %(character)s, you are exceeding the maximum point of traits",
+                code='exceeding_maximum_traits',
+                params={
+                    'trait': cleaned_data['trait'].name,
+                    'character':cleaned_data['character'].name,
+                },
+)
+
+
+
+    class Meta:
+        model = CharacterTrait
+        fields = ('trait','character',)
+
+
 class SkillCreateForm(forms.ModelForm):
     class Meta:
         model = CharacterSkill
@@ -98,6 +128,3 @@ class CharacterSkillModifyForm(forms.ModelForm):
     class Meta:
         model = CharacterSkill
         fields = ('character','level','skill','levelmax','specialisations')
-
-
-#//////////////////////////////////////////////////////////////////#

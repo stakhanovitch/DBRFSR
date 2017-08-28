@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}
+{% endblock title %}
+{% block content %}
+</div>
+</div>
+</div>
+  <div class="jumbotron" style="background-image: url({{item.image.url}}); background-size: cover;">
+    <div class="container">
+      <h1 class="jumbotron-text-highlight">{{item.name}}</h1>
+      <div class="row">
+      <p class="jumbotron-text-highlight">{{ item.description}}</p>
+      <form class="form-signin" enctype="multipart/form-data" action="" method = "POST">
+      {% csrf_token %}
+      {% bootstrap_form form %}
+        {% buttons %}
+          <button type="submit" class="btn-lg btn-primary">
+             Add
+          </button>
+        {% endbuttons %}
+      </div>
+      </form>
+
+    </div>
+  </div>
+<div>
+<div>
+<div>
+
+{% endblock content %}

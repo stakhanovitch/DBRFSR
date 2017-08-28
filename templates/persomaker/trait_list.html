@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}
+What makes you special ?
+{% endblock title %}
+{% block content %}
+{% include "ergonomy/submenu.html" %}
+
+{% if object_list.first.get_quality_type_display == "Quality" %}
+  <h3>You already spend {{character.current_quality_sum}} over the {{character.max_quality}} karma points in qualities</h3>
+{% elif object_list.first.get_quality_type_display == "Default" %}
+  <h3> You already spend {{character.current_default_sum}} over the {{character.max_default}} karma points in default</h3>
+{% endif %}
+
+  <div class='row'>
+    {% for item in object_list %}
+    <div class="col-sm-4 col-md-3 ">
+      <div class="thumbnail">
+          <div class="caption">
+              <div>
+                <div>
+                  <h3 class="text-center">{{item.name}}</h3>
+                  {% if item.karma_cost|add:character.current_quality_sum >= character.max_quality %}
+                    <div class="alert alert-warning" role="alert">you will exceed the maximum point in {{item.get_quality_type_display}}</div>
+                  {% endif %}
+                  <hr class="hr-small"/>
+                    {% if item.karma_cost >= 0 %}
+                      karma cost : {{item.karma_cost}}
+                    {% else %}
+                      karma bonus : {% widthratio item.karma_cost 1 -1%}
+                    {% endif %}
+                  <hr class="hr-small"/>
+
+                </div>
+                <p>{{item.description|slice:":255" }}{% if item.description|slice:"255:256" %}...{% endif %}</p>
+              </div>
+
+              <div class="btn-group btn-group-justified" role="group">
+                <a href={% url "persomaker:trait_view" pk=item.pk characterpk=character.pk %} class="btn btn-primary"><span class=""> more info </span></a>
+              </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+
+
+
+{% endblock content %}

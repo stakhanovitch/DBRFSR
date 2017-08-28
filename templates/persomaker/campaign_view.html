@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}
+  {{object.name}}
+{% endblock title %}
+{% block content %}
+{% include "ergonomy/submenu.html" %}
+</div>
+</div>
+</div>
+  <div class="jumbotron" style="background-image: url({{object.image.url}}); background-size: cover;">
+    <div class="container">
+      <div class="row">
+      <p class="jumbotron-text-highlight">Other players:</p>
+      {% for item in object.contacts %}
+        <p >{{item}}</p>
+      {% endfor %}
+      <p class="jumbotron-text-highlight">{{object.description}}</p>
+
+      <div class="text-center">
+        <a href="{% url 'persomaker:create_character' campaign_slug=object.slug %}" class="btn btn-primary"> create your character </a>
+      </div>
+    </div>
+  </div>
+</div>
+<div>
+<div>
+<div>
+{% endblock content %}

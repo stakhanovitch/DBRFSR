@@ -7,11 +7,12 @@ from itertools import chain
 from django.urls import reverse
 from django.views import generic
 from math import ceil
-from .forms import *
-from django.forms import formset_factory,modelformset_factory,inlineformset_factory
+from persomaker.forms import *
+from persomaker.models import *
+
+#from django.forms import formset_factory,modelformset_factory,inlineformset_factory
 from functools import partial, wraps
 
-from persomaker.models import *
 
 from django.contrib.auth.models import User
 from django.forms import HiddenInput
@@ -20,17 +21,29 @@ from django.template.defaulttags import register
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import DeleteView, UpdateView, CreateView, ModelFormMixin
 from django.views.generic import FormView,ListView
-from django.urls import reverse_lazy
-
 from usermanagement.views import LoginRequiredMixin
-@register.filter
-def get_item(dictionary, key):
-    return dictionary.get(key)
+
+from django.urls import reverse_lazy
+from django.template import Context
+from usermanagement.models import Circle
+
+#///////////////////////////////////////////////////////////////////////////////
+#Views related to Character Model
+class CharacterDelete(LoginRequiredMixin, DeleteView):
+    model = Character
+    template_name = "user/simple_delete.html"
+    success_url = reverse_lazy('usermanagement:user_profile')
 
 class CreateCharacterView(LoginRequiredMixin, CreateView):
     model = Character
     form_class = CharacterCreationForm
     template_name = 'persomaker/create_character.html'
+
+    def get_context_data(self, **kwargs):
+        # I need the campaign ID for the submenu
+        context = super(CreateCharacterView, self).get_context_data(**kwargs)
+        context['campaign'] = Circle.objects.get(slug = self.kwargs['campaign_slug'])
+        return context
 
     def get_success_url(self):
         return reverse('persomaker:module_list', args=[self.object.id])
@@ -44,12 +57,60 @@ class CreateCharacterView(LoginRequiredMixin, CreateView):
             pass
         return kwargs
 
-class ModuleListView(LoginRequiredMixin, ListView):
+class UpdateCharacterView(LoginRequiredMixin, UpdateView):
+    model = Character
+    pk_url_kwarg = "characterpk"
+    form_class = CharacterCreationForm
+    template_name = 'persomaker/create_character.html'
+
+    def get_context_data(self, **kwargs):
+        # I need the campaign ID for the submenu
+        context = super(UpdateCharacterView, self).get_context_data(**kwargs)
+        context['campaign'] = Circle.objects.get(slug = self.kwargs['campaign_slug'])
+        context['character'] = Character.objects.get(pk = self.kwargs['characterpk'])
+        return context
+
+    def get_success_url(self):
+        return reverse('persomaker:module_list', args=[self.object.id])
+    def get_form_kwargs(self):
+        kwargs = super(UpdateCharacterView, self).get_form_kwargs()
+        kwargs['player'] = self.request.user # pass the 'user' in kwargs
+        try:
+            kwargs['campaign'] = Circle.objects.get(slug = self.kwargs['campaign_slug'])
+        except Exception as e:
+            pass
+        return kwargs
+
+class CharacterDetailView(LoginRequiredMixin, DetailView):
+    model = Character
+    template_name = 'persomaker/character_view.html'
+
+#///////////////////////////////////////////////////////////////////////////////
+#Views related to Campaign Model (former circle)
+
+class CampaignDetailView(LoginRequiredMixin, DetailView):
+    model = Circle
+    slug_url_kwarg = "campaign_slug"
+    slug_field = "slug"
+    template_name = 'persomaker/campaign_view.html'
+    def get_context_data(self, **kwargs):
+        # I need the campaign ID for the submenu
+        context = super(CampaignDetailView, self).get_context_data(**kwargs)
+        context['campaign'] = Circle.objects.get(slug = self.kwargs['campaign_slug'])
+        try:
+            context['character'] = Character.objects.get(pk = self.kwargs['characterpk'])
+        except Exception as e:
+            pass
+        return context
+#///////////////////////////////////////////////////////////////////////////////
+#Views related to Module & CharacterModule Models
+
+class CharacterModuleListView(LoginRequiredMixin, ListView):
     model = Module
     template_name = 'persomaker/module_list.html'
     def get_context_data(self, **kwargs):
         # Get queryset by category item
-        context = super(ModuleListView, self).get_context_data(**kwargs)
+        context = super(CharacterModuleListView, self).get_context_data(**kwargs)
         categories = (
                             ('0','Metatype'),
                             ('1','Talent'),
@@ -78,13 +139,13 @@ class ModuleListView(LoginRequiredMixin, ListView):
             object_list = Module.objects.filter(module_bundle = self.kwargs['categorypk'])
         return object_list
 
-class ModuleView(LoginRequiredMixin, DetailView):
+class ModuleDetailView(LoginRequiredMixin, DetailView):
     model = Module
     template_name = 'persomaker/module_view.html'
     success_url = reverse_lazy('persomaker:module_list')
 
     def get_context_data(self, **kwargs):
-        context = super(ModuleView, self).get_context_data(**kwargs)
+        context = super(ModuleDetailView, self).get_context_data(**kwargs)
         if 'pk' in self.kwargs:
             context['item'] = get_object_or_404(Module, pk=self.kwargs['pk'])
         if 'characterpk' in self.kwargs:
@@ -97,13 +158,7 @@ class ModuleView(LoginRequiredMixin, DetailView):
             initial = { 'character' : get_object_or_404(Character, pk=self.kwargs['characterpk']),'module':get_object_or_404(Module, pk=self.kwargs['pk']),})
         context['form'] = form
         return context
-        """
-    def get_form_kwargs(self, **kwargs):
-        kwargs = super(ModuleView, self).get_form_kwargs()
-        context['character'] = get_object_or_404(Character, pk=self.kwargs['characterpk'])
-        context['item'] = get_object_or_404(Module, pk=self.kwargs['pk'])
-        return kwargs
-        """
+
     def post(self, request, *args,**kargs):
         object = self.get_object()
         try:
@@ -118,6 +173,97 @@ class ModuleView(LoginRequiredMixin, DetailView):
         else:
             return render(request, 'persomaker/module_view.html',
             {'form': form,})
+
+class CharacterModuleDelete(LoginRequiredMixin, DeleteView):
+    model = CharacterModule
+    template_name = "persomaker/characterskill_delete.html"
+    def get_success_url(self):
+        character = self.object.character
+        success_url = reverse('persomaker:module_list', args=[character.id])
+        return success_url
+
+#///////////////////////////////////////////////////////////////////////////////
+#views related to Trait & CharacterTraits Model
+
+class TraitListView(LoginRequiredMixin, ListView):
+    model = Trait
+    template_name = 'persomaker/trait_list.html'
+    def get_queryset(self):
+        # dans l'attente d'un refactoring plus joli
+        if "category_slug" in self.kwargs:
+            if self.kwargs['category_slug'] == "quality":
+                cat = '01'
+            elif self.kwargs['category_slug'] == "default":
+                cat = '02'
+            else:
+                cat =""
+            object_list = Trait.objects.filter(quality_type = cat)
+            return object_list
+    def get_context_data(self, **kwargs):
+        # I need the campaign ID for the submenu
+        context = super(TraitListView, self).get_context_data(**kwargs)
+        context['character'] = Character.objects.get(pk = self.kwargs['characterpk'])
+        return context
+
+class CharacterTraitListView(LoginRequiredMixin, ListView):
+    model = CharacterTrait
+    template_name = 'persomaker/charactertrait_list.html'
+    def get_queryset(self):
+        if "characterpk" in self.kwargs:
+            object_list = CharacterTrait.objects.filter(character = self.kwargs['characterpk'])
+            return object_list
+    def get_context_data(self, **kwargs):
+        # I need the campaign ID for the submenu
+        context = super(CharacterTraitListView, self).get_context_data(**kwargs)
+        context['character'] = Character.objects.get(pk = self.kwargs['characterpk'])
+        return context
+
+class TraitDetailView(LoginRequiredMixin, DetailView):
+    model = Trait
+    template_name = 'persomaker/trait_view.html'
+    success_url = reverse_lazy('persomaker:charactertrait_list')
+
+    def get_context_data(self, **kwargs):
+        context = super(TraitDetailView, self).get_context_data(**kwargs)
+        if 'pk' in self.kwargs:
+            context['item'] = get_object_or_404(Trait, pk=self.kwargs['pk'])
+        if 'characterpk' in self.kwargs:
+            context['character'] = get_object_or_404(Character, pk=self.kwargs['characterpk'])
+        try:
+            instance = CharacterTrait.objects.get(character = get_object_or_404(Character, pk = self.kwargs['characterpk']),trait = get_object_or_404(Trait, pk = self.kwargs['pk']))
+            form = CharacterTraitForm(instance = instance)
+        except Exception as e:
+            print(e)
+            form = CharacterTraitForm(
+            initial = { 'character' : get_object_or_404(Character, pk=self.kwargs['characterpk']),'trait':get_object_or_404(Trait, pk=self.kwargs['pk']),})
+        context['form'] = form
+        return context
+
+    def post(self, request, *args,**kargs):
+        self.object = self.get_object()
+        try:
+            instance = CharacterTrait.objects.get(character = get_object_or_404(Character, pk=self.kwargs['characterpk']),trait = get_object_or_404(Trait, pk=self.kwargs['pk']))
+            form = CharacterTraitForm(self.request.POST, instance = instance)
+        except Exception as e:
+            print(e)
+            form = CharacterTraitForm(self.request.POST,
+            initial = { 'character' : get_object_or_404(Character, pk=self.kwargs['characterpk']),'trait':get_object_or_404(Trait, pk=self.kwargs['pk']),})
+        if form.is_valid():
+            form.save()
+            return redirect('persomaker:charactertrait_list', self.kwargs['characterpk'])
+        else:
+            return self.render_to_response(context=self.get_context_data())
+
+class CharacterTraitDelete(LoginRequiredMixin, DeleteView):
+    model = CharacterTrait
+    template_name = "persomaker/characterskill_delete.html"
+    def get_success_url(self):
+        character = self.object.character
+        success_url = reverse('persomaker:trait_list', args=[character.id])
+        return success_url
+
+#///////////////////////////////////////////////////////////////////////////////
+#URL related to Skill & CharacterSkill Models
 
 class CharacterSkillListView(LoginRequiredMixin, ListView):
     model = CharacterSkill
@@ -144,16 +290,6 @@ class CharacterSkillListView(LoginRequiredMixin, ListView):
         return context
 
 
-class CharacterModuleDelete(LoginRequiredMixin, DeleteView):
-    model = CharacterModule
-    template_name = "persomaker/characterskill_delete.html"
-    def get_success_url(self):
-        character = self.object.character
-        success_url = reverse('persomaker:module_list', args=[character.id])
-        return success_url
-
-
-
 class CharacterSkillDelete(LoginRequiredMixin, DeleteView):
     model = CharacterSkill
     def get_success_url(self):
@@ -178,13 +314,6 @@ class CharacterSkillDetailView(LoginRequiredMixin, DetailView):
         else:
             return render(request, 'persomaker/characterskill_detail.html',
             {'form': form,})
-
-def skill_delete(request,pk):
-    if request.method =="POST":
-        characterskilltodelete = CharacterSkill.objects.get(id=pk)
-        instance = Character.objects.get(id = characterskilltodelete.character_id)
-        characterskilltodelete.delete()
-        return redirect('persomaker:skill_list', instance.id)
 
 class CreateCharacterSkillView(LoginRequiredMixin, CreateView):
     model = Character
@@ -218,9 +347,8 @@ def skill_add(request,pk,skillfilter):
     'instance':instance,
     'form': form,})
 
-    class QualitiesList(LoginRequiredMixin, ListView):
-        pass
 #///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#deprecated views (To be deleted)
 def action_effect(request,objectpk,actionpk):
     if request.method =="POST":
         instance = Character.objects.get(id=CharacterWeapon.objects.get(id=objectpk).character_id)

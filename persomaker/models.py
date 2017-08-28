@@ -8,6 +8,7 @@ from django.db import models
 from usermanagement.models import Circle
 from itertools import chain
 from django.http import HttpResponseRedirect
+from django.db.models import Sum
 
 class Module (models.Model):
     """
@@ -43,8 +44,8 @@ class Module (models.Model):
         )
 
     skills = models.ManyToManyField('Skill', through='ModuleSkill', related_name='skills')
-    qualities = models.ManyToManyField('Quality', blank=True, default=None,)
-    karma_cost = models.CharField(max_length=70, blank=True)
+    traits = models.ManyToManyField('Trait', blank=True, default=None,)
+    karma_cost = models.IntegerField(default = 0, blank=True)
     options = models.ManyToManyField("self", blank=True)
     def __str__(self):
         return self.name
@@ -78,6 +79,8 @@ class Character(models.Model):
     ########### Stat ###########
     karma = models.IntegerField(default=0)
     nuyen = models.IntegerField(default=0)
+    max_quality = models.IntegerField(default=25)
+    max_default = models.IntegerField(default=25)
     credibility = models.IntegerField(default=0)
     notoriety = models.IntegerField(default=0)
     awareness = models.IntegerField(default=0)
@@ -86,6 +89,7 @@ class Character(models.Model):
     inventory = models.ManyToManyField('Obj', through='CharacterObj', related_name='inventory')
     skills = models.ManyToManyField('Skill', through='CharacterSkill', related_name='characters')
     modules = models.ManyToManyField('Module', through='CharacterModule', through_fields=('character','module'),related_name='modules')
+    traits = models.ManyToManyField('Trait', through='CharacterTrait', through_fields=('character','trait'),related_name='traits')
     player = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     campaign = models.ForeignKey('usermanagement.Circle', null=True, blank=True, default=None,)
 
@@ -95,6 +99,19 @@ class Character(models.Model):
         return range(CharacterSkill.objects.get(character = self, skill__name ='Physical condition').level)
     def get_absolute_url(self):
         return "/persomaker/character/profile/%s" % self.id
+    def current_quality_sum(self):
+        try:
+            value = int(Trait.objects.filter(charactertrait__character = self, quality_type = '01').aggregate(sum = Sum('karma_cost'))['sum'])
+        except Exception as e:
+            value = 0
+        return value
+    def current_default_sum(self):
+        try :
+            value = int(Trait.objects.filter(charactertrait__character  = self, quality_type = '02').aggregate(sum = Sum('karma_cost'))['sum'])*-1
+        except Exception as e:
+            value = 0
+        return value
+
 
 
 class CharacterModule(models.Model):
@@ -112,6 +129,7 @@ class CharacterModule(models.Model):
         If the level = 0 -> delete the CharacterSkill
         """
         super(CharacterModule, self).delete(*args, **kwargs)
+        #//////////////////////////////////////////
         #define the pool of ModuleSkill
         print('beginning of the process')
         try:
@@ -123,6 +141,21 @@ class CharacterModule(models.Model):
             option_moduleskill_set = self.charactermoduleoption.moduleskill_set.all()
         except Exception as e:
             option_moduleskill_set = []
+        #//////////////////////////////////////////
+        #define the pool of traits
+        try:
+            moduletrait_set = self.module.traits.all()
+        except Exception as e:
+            moduletrait_set = []
+        #define the pool of traits link to the module's option
+        try:
+            option_moduletrait_set = self.charactermoduleoption.traits.all()
+        except Exception as e:
+            option_moduletrait_set = []
+        print('moduletrait_set',moduletrait_set)
+        print('option_moduletrait_set',option_moduletrait_set)
+
+        #//////////////////////////////////////////
         #If the characterskill exist, we control if the characterskill have been upgraded in the skill step
         #if the character skill minus module skill level equal to 0, we delete the characterskill
         print('this is the chain :',moduleskill_set,"/",option_moduleskill_set)
@@ -131,7 +164,6 @@ class CharacterModule(models.Model):
             character_skill = CharacterSkill.objects.filter(skill = tempmoduleskill.skill , character = self.character).first()
             print(character_skill)
             if character_skill:
-                #try:
                 print('character_skill.level',character_skill.level)
                 print('tempmoduleskill.level',tempmoduleskill.level)
                 print('character_skill.levelmax',character_skill.levelmax)
@@ -143,12 +175,19 @@ class CharacterModule(models.Model):
                     character_skill.level -=  tempmoduleskill.level
                     character_skill.levelmax -=  tempmoduleskill.levelmax
                     character_skill.save()
-                #except Exception as e:
-            #    pass
-        #when we finish the process, we delete the CharacterModule
+        #//////////////////////////////////////////
+        for temptrait in chain(moduletrait_set,option_moduletrait_set):
+            print(temptrait)
+            self.character.trait_set.remove(temptrait)
+            print(self.character.trait_set.all())
+        #//////////////////////////////////////////
+        # get the karma back to the character
+        print("self.character.karma",self.character.karma, type(self.character.karma))
+        print("self.character.karma",self.module.karma_cost, type(self.module.karma_cost))
+
+        self.character.karma += int(self.module.karma_cost)
+        self.character.save()
         print('finish')
-        success_url = self.get_success_url()
-        return HttpResponseRedirect(success_url)
 
 class Skill(models.Model):
     name = models.CharField(max_length=70)
@@ -345,28 +384,6 @@ class ActionEffect(models.Model):
     impacted_object = models.CharField(max_length=70, default = None)
     impacted_field = models.CharField(max_length=70, default = None)
 
-class Quality(models.Model):
-    name = models.CharField(max_length=70, default = None)
-    karma_cost = models.IntegerField(default=0)
-    QUALITY = '01'
-    DEFAULT = '02'
-    QUALITY_TYPE = ((QUALITY, 'Quality'),
-                    (DEFAULT, 'Default'),
-                )
-    quality_type = models.CharField(
-        max_length=2,
-        choices = QUALITY_TYPE,
-        default='',
-        blank=True,
-        null=True,
-        )
-    page = models.IntegerField(default=0, blank=True)
-    rulebook = models.CharField(max_length=70, blank=True)
-    description = models.CharField(max_length=5000, blank=True, null = True)
-    character = models.ManyToManyField(Character,default = None, blank=True,)
-    def __str__(self):
-        return self.name
-
 class Modifier(models.Model):
     name = models.CharField(max_length=70, default = None)
     impacted_skill = models.ForeignKey(Skill, on_delete=models.CASCADE)
@@ -375,3 +392,29 @@ class Modifier(models.Model):
     value = models.IntegerField(default=0)
     def __str__(self):
         return self.name
+
+class Trait(models.Model):
+    name = models.CharField(max_length=70, default = None)
+    description = models.TextField(blank=True, null = True)
+    karma_cost = models.IntegerField(default=0)
+    modifiers = models.ManyToManyField(Modifier, default = None, blank=True,)
+    page = models.IntegerField(default=0, blank=True)
+    rulebook = models.CharField(max_length=70, blank=True)
+    QUALITY = '01'
+    DEFAULT = '02'
+    QUALITY_TYPE = ((QUALITY, 'Quality'),
+    (DEFAULT, 'Default'),
+    )
+    quality_type = models.CharField(
+    max_length=2,
+    choices = QUALITY_TYPE,
+    default='',
+    blank=True,
+    null=True,
+    )
+    def __str__(self):
+        return self.name
+
+class CharacterTrait(models.Model):
+    character = models.ForeignKey(Character)
+    trait = models.ForeignKey(Trait)

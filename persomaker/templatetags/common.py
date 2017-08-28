@@ -17,6 +17,9 @@ class SetVarNode(template.Node):
 
         return u""
 
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key)
 
 @register.tag(name='set')
 def set_var(parser, token):
@@ -28,3 +31,15 @@ def set_var(parser, token):
         raise template.TemplateSyntaxError("'set' tag must be of the form: {% set <var_name> = <var_value> %}")
 
     return SetVarNode(parts[1], parts[3])
+
+
+@register.simple_tag(takes_context=True)
+def url_active(context, *args, **kwargs):
+    if 'request' not in context:
+        return ''
+
+    request = context['request']
+    if request.resolver_match.url_name in args:
+        return kwargs['success'] if 'success' in kwargs else 'active'
+    else:
+        return ''
